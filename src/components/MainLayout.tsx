@@ -5,7 +5,7 @@ import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { showSuccess, showError } from '@/utils/toast';
-import { Home, User, Shield, BarChart } from 'lucide-react'; // Removed CalendarDays icon
+import { Home, User, Shield, BarChart, CalendarDays } from 'lucide-react'; // Added CalendarDays icon
 import { useEventNotifications } from '@/hooks/useEventNotifications'; // Import the new hook
 
 const MainLayout: React.FC = () => {
@@ -74,6 +74,11 @@ const MainLayout: React.FC = () => {
                 <Link to="/admin/analytics">
                   <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10">
                     <BarChart className="mr-2 h-4 w-4" /> Analytics
+                  </Button>
+                </Link>
+                <Link to="/admin/calendar"> {/* New Calendar link */}
+                  <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10">
+                    <CalendarDays className="mr-2 h-4 w-4" /> Calendar
                   </Button>
                 </Link>
               </>

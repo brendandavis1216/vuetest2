@@ -142,8 +142,10 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ event, onEventUpdated
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-          <Edit className="h-4 w-4" />
-          <span className="sr-only">Edit Event</span>
+          <> {/* Explicitly wrap children in a fragment */}
+            <Edit className="h-4 w-4" />
+            <span className="sr-only">Edit Event</span>
+          </>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

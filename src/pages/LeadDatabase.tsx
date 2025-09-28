@@ -285,7 +285,9 @@ const LeadDatabase = () => {
           <Dialog open={isAddLeadDialogOpen} onOpenChange={setIsAddLeadDialogOpen}>
             <DialogTrigger asChild>
               <Button>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add New Lead
+                <> {/* Explicitly wrap children in a fragment */}
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add New Lead
+                </>
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">

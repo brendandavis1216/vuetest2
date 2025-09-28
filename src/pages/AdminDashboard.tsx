@@ -8,10 +8,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { showSuccess, showError } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { FileStack, ArrowLeft, Eye, Building2 } from 'lucide-react'; // Added Building2 icon
+import { FileStack, ArrowLeft, Eye, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAdminEventNotifications } from '@/hooks/useAdminEventNotifications';
 import EditEventDialog from '@/components/EditEventDialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface Profile {
   id: string;
@@ -20,7 +27,7 @@ interface Profile {
   avatar_url: string | null;
   role: string;
   email: string;
-  chapter_id: string | null; // Ensure chapter_id is included
+  chapter_id: string | null;
 }
 
 interface Event {
@@ -40,12 +47,19 @@ interface Event {
   signed_contract_url: string | null;
 }
 
+interface Chapter {
+  id: string;
+  name: string;
+}
+
 const AdminDashboard = () => {
   const { supabase, session } = useSupabase();
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
   const [loadingProfiles, setLoadingProfiles] = useState(false);
+  const [loadingChapters, setLoadingChapters] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [userEvents, setUserEvents] = useState<Event[]>([]);
@@ -93,6 +107,25 @@ const AdminDashboard = () => {
     }
   }, [supabase]);
 
+  const fetchAllChapters = useCallback(async () => {
+    setLoadingChapters(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-all-chapters');
+      if (error) {
+        console.error('Error invoking get-all-chapters function:', error.message);
+        showError(`Failed to load chapters: ${error.message}`);
+        setChapters([]);
+      } else if (data) {
+        setChapters(data as Chapter[]);
+      }
+    } catch (error: any) {
+      console.error('Unexpected error calling edge function:', error.message);
+      showError(`An unexpected error occurred while fetching chapters: ${error.message}`);
+    } finally {
+      setLoadingChapters(false);
+    }
+  }, [supabase]);
+
   const fetchUserEvents = useCallback(async (userId: string) => {
     setLoadingUserEvents(true);
     const { data, error } = await supabase
@@ -122,13 +155,38 @@ const AdminDashboard = () => {
         navigate('/dashboard', { replace: true });
       } else {
         fetchAllProfiles();
+        fetchAllChapters();
       }
     }
-  }, [isAdmin, loadingAdminStatus, navigate, fetchAllProfiles]);
+  }, [isAdmin, loadingAdminStatus, navigate, fetchAllProfiles, fetchAllChapters]);
 
   const handleViewUserEvents = (user: Profile) => {
     setSelectedUser(user);
     fetchUserEvents(user.id);
+  };
+
+  const handleChapterAssignment = async (userId: string, newChapterId: string | null) => {
+    try {
+      const { error } = await supabase.functions.invoke('update-user-chapter', {
+        body: { userId, chapterId: newChapterId },
+      });
+
+      if (error) {
+        console.error('Error updating user chapter:', error.message);
+        showError(`Failed to update user's chapter: ${error.message}`);
+      } else {
+        showSuccess('User chapter updated successfully!');
+        // Optimistically update the profiles state
+        setProfiles(prevProfiles =>
+          prevProfiles.map(profile =>
+            profile.id === userId ? { ...profile, chapter_id: newChapterId } : profile
+          )
+        );
+      }
+    } catch (error: any) {
+      console.error('Unexpected error calling edge function:', error.message);
+      showError(`An unexpected error occurred: ${error.message}`);
+    }
   };
 
   const calculateCompletionPercentage = (event: Event) => {
@@ -153,10 +211,10 @@ const AdminDashboard = () => {
     );
   }
 
-  if (loadingProfiles && !selectedUser) {
+  if ((loadingProfiles || loadingChapters) && !selectedUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading user profiles...</p>
+        <p>Loading user profiles and chapters...</p>
       </div>
     );
   }
@@ -185,8 +243,9 @@ const AdminDashboard = () => {
                   <TableHead>School</TableHead>
                   <TableHead>Fraternity</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead className="text-center">Chapter Assignment</TableHead> {/* New Table Head */}
                   <TableHead className="text-right">Actions</TableHead>
-                  <TableHead className="text-right">Chapter Profile</TableHead> {/* New Table Head */}
+                  <TableHead className="text-right">Chapter Profile</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -195,6 +254,25 @@ const AdminDashboard = () => {
                     <TableCell>{profile.school || 'N/A'}</TableCell>
                     <TableCell>{profile.fraternity || 'N/A'}</TableCell>
                     <TableCell>{profile.email}</TableCell>
+                    <TableCell className="text-center"> {/* New Table Cell for Chapter Assignment */}
+                      <Select
+                        value={profile.chapter_id || ''}
+                        onValueChange={(value) => handleChapterAssignment(profile.id, value === '' ? null : value)}
+                        disabled={loadingChapters}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Assign Chapter" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">Unassign Chapter</SelectItem>
+                          {chapters.map((chapter) => (
+                            <SelectItem key={chapter.id} value={chapter.id}>
+                              {chapter.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="outline"
@@ -204,7 +282,7 @@ const AdminDashboard = () => {
                         <Eye className="mr-2 h-4 w-4" /> View Events
                       </Button>
                     </TableCell>
-                    <TableCell className="text-right"> {/* New Table Cell */}
+                    <TableCell className="text-right">
                       {profile.chapter_id ? (
                         <Link to={`/admin/chapters/${profile.chapter_id}`}>
                           <Button variant="outline" size="sm">

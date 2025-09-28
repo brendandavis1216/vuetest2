@@ -4,17 +4,19 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import CreateEventDialog from '@/components/CreateEventDialog';
-import EditEventDialog from '@/components/EditEventDialog'; // Import the new EditEventDialog
+import EditEventDialog from '@/components/EditEventDialog';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { showError } from '@/utils/toast';
 import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Eye } from 'lucide-react'; // Import Eye icon
+import { Link } from 'react-router-dom'; // Import Link for navigation
 
 interface Event {
   id: string;
   event_date: string;
-  artist_name: string | null; // Updated to be nullable
+  artist_name: string | null;
   budget: number;
   contact_phone: string;
   created_at: string;
@@ -82,17 +84,23 @@ const Dashboard = () => {
                     <TableHead>Artist Name</TableHead>
                     <TableHead>Budget</TableHead>
                     <TableHead>Contact Phone</TableHead>
-                    <TableHead className="text-right">Actions</TableHead> {/* Added Actions column */}
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {events.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
-                      <TableCell>{event.artist_name || 'N/A'}</TableCell> {/* Display N/A if artist_name is null */}
+                      <TableCell>{event.artist_name || 'N/A'}</TableCell>
                       <TableCell>${event.budget.toLocaleString()}</TableCell>
                       <TableCell>{event.contact_phone}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right flex justify-end space-x-2">
+                        <Link to={`/events/${event.id}`}>
+                          <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                            <Eye className="h-4 w-4" />
+                            <span className="sr-only">View Event</span>
+                          </Button>
+                        </Link>
                         <EditEventDialog event={event} onEventUpdated={fetchEvents} />
                       </TableCell>
                     </TableRow>

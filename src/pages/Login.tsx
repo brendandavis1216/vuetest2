@@ -12,7 +12,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (session) {
-      navigate('/'); // Redirect to home if already logged in
+      navigate('/profile'); // Redirect to profile if already logged in
     }
   }, [session, navigate]);
 
@@ -37,7 +37,7 @@ const LoginPage = () => {
             },
           }}
           theme="light"
-          redirectTo={window.location.origin + '/'}
+          redirectTo={window.location.origin + '/profile'} // Redirect to profile after successful auth
         />
       </div>
     </div>

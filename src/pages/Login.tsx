@@ -30,6 +30,22 @@ const LoginPage = () => {
           }}
           theme="light"
           redirectTo={window.location.origin + '/profile'} // Redirect to profile after successful auth
+          extraFields={[
+            {
+              name: 'school',
+              label: 'School',
+              type: 'text',
+              required: true,
+              placeholder: 'Enter your school',
+            },
+            {
+              name: 'fraternity',
+              label: 'Fraternity',
+              type: 'text',
+              required: true,
+              placeholder: 'Enter your fraternity',
+            },
+          ]}
         />
         <p className="mt-4 text-center text-sm text-gray-600">
           Administrators: Use your designated admin credentials above.

@@ -12,13 +12,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface Event {
   id: string;
-  event_name: string | null; // Added event_name
+  event_name: string | null;
   event_date: string;
   artist_name: string | null;
   budget: number;
   contact_phone: string;
   created_at: string;
   user_id: string;
+  renders_url: string | null; // New field
+  contract_url: string | null; // New field
+  invoice_url: string | null; // New field
+  equipment_list_url: string | null; // New field
+  other_documents_url: string | null; // New field
 }
 
 const EventDetails = () => {
@@ -38,7 +43,7 @@ const EventDetails = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('*') // Select all columns, including the new URL fields
       .eq('id', id)
       .eq('user_id', session.user.id)
       .single();
@@ -77,11 +82,13 @@ const EventDetails = () => {
     );
   }
 
-  // Placeholder function for viewing documents
-  const handleViewDocument = (documentType: string) => {
-    console.log(`Viewing ${documentType} for event ${event.id}`);
-    // In a real application, this would open a modal, navigate to a viewer, or download the file.
-    showError(`Viewing functionality for ${documentType} is not yet implemented.`);
+  // Function to handle viewing documents
+  const handleViewDocument = (url: string | null, documentType: string) => {
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      showError(`No ${documentType} available for this event.`);
+    }
   };
 
   return (
@@ -128,8 +135,17 @@ const EventDetails = () => {
             <CardTitle>Renders</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">No renders available yet.</p>
-            <Button variant="outline" className="mt-4" onClick={() => handleViewDocument('Renders')}>View Renders</Button>
+            <p className="text-muted-foreground">
+              {event.renders_url ? 'Renders available.' : 'No renders available yet.'}
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => handleViewDocument(event.renders_url, 'Renders')}
+              disabled={!event.renders_url}
+            >
+              View Renders
+            </Button>
           </CardContent>
         </Card>
 
@@ -138,8 +154,17 @@ const EventDetails = () => {
             <CardTitle>Contract</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">No contract available yet.</p>
-            <Button variant="outline" className="mt-4" onClick={() => handleViewDocument('Contract')}>View Contract</Button>
+            <p className="text-muted-foreground">
+              {event.contract_url ? 'Contract available.' : 'No contract available yet.'}
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => handleViewDocument(event.contract_url, 'Contract')}
+              disabled={!event.contract_url}
+            >
+              View Contract
+            </Button>
           </CardContent>
         </Card>
 
@@ -148,8 +173,17 @@ const EventDetails = () => {
             <CardTitle>Invoice</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">No invoice available yet.</p>
-            <Button variant="outline" className="mt-4" onClick={() => handleViewDocument('Invoice')}>View Invoice</Button>
+            <p className="text-muted-foreground">
+              {event.invoice_url ? 'Invoice available.' : 'No invoice available yet.'}
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => handleViewDocument(event.invoice_url, 'Invoice')}
+              disabled={!event.invoice_url}
+            >
+              View Invoice
+            </Button>
           </CardContent>
         </Card>
 
@@ -158,8 +192,17 @@ const EventDetails = () => {
             <CardTitle>Equipment List</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">No equipment list available yet.</p>
-            <Button variant="outline" className="mt-4" onClick={() => handleViewDocument('Equipment List')}>View Equipment List</Button>
+            <p className="text-muted-foreground">
+              {event.equipment_list_url ? 'Equipment list available.' : 'No equipment list available yet.'}
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => handleViewDocument(event.equipment_list_url, 'Equipment List')}
+              disabled={!event.equipment_list_url}
+            >
+              View Equipment List
+            </Button>
           </CardContent>
         </Card>
 
@@ -168,8 +211,17 @@ const EventDetails = () => {
             <CardTitle>Other Documents</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">No other documents available yet.</p>
-            <Button variant="outline" className="mt-4" onClick={() => handleViewDocument('Other Documents')}>View Documents</Button>
+            <p className="text-muted-foreground">
+              {event.other_documents_url ? 'Other documents available.' : 'No other documents available yet.'}
+            </p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => handleViewDocument(event.other_documents_url, 'Other Documents')}
+              disabled={!event.other_documents_url}
+            >
+              View Documents
+            </Button>
           </CardContent>
         </Card>
       </div>

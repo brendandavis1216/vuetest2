@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ArrowLeft, PlusCircle, Search, UserPlus } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Search, UserPlus, UploadCloud } from 'lucide-react';
 import { showError, showSuccess } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -49,6 +49,10 @@ const LeadDatabase = () => {
   const [loadingLeads, setLoadingLeads] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddLeadDialogOpen, setIsAddLeadDialogOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importErrors, setImportErrors] = useState<any[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -163,6 +167,58 @@ const LeadDatabase = () => {
     }
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      setSelectedFile(event.target.files[0]);
+    } else {
+      setSelectedFile(null);
+    }
+  };
+
+  const handleImportCsv = async () => {
+    if (!selectedFile) {
+      showError('Please select a CSV file to import.');
+      return;
+    }
+
+    setImporting(true);
+    setImportErrors([]);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const { data, error } = await supabase.functions.invoke('import-leads', {
+        body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data', // Important for file uploads
+        },
+      });
+
+      if (error) {
+        console.error('Error invoking import-leads function:', error.message);
+        showError(`Import failed: ${error.message}`);
+        if (error.context?.errors) {
+          setImportErrors(error.context.errors);
+        }
+      } else if (data) {
+        showSuccess(data.message);
+        if (data.errors && data.errors.length > 0) {
+          setImportErrors(data.errors);
+          showError(`${data.errorCount} leads had errors during import.`);
+        }
+        setIsImportDialogOpen(false);
+        setSelectedFile(null);
+        fetchLeads(); // Refresh the list of leads
+      }
+    } catch (error: any) {
+      console.error('Unexpected error during CSV import:', error.message);
+      showError(`An unexpected error occurred: ${error.message}`);
+    } finally {
+      setImporting(false);
+    }
+  };
+
   if (loadingAdminStatus || loadingLeads) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -180,116 +236,157 @@ const LeadDatabase = () => {
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <UserPlus className="h-7 w-7" /> Lead Database
         </h1>
-        <Dialog open={isAddLeadDialogOpen} onOpenChange={setIsAddLeadDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add New Lead
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Add New Lead</DialogTitle>
-              <DialogDescription>
-                Enter the details for a potential client.
-              </DialogDescription>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="school"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>School</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., University of XYZ" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+        <div className="flex gap-2">
+          <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <UploadCloud className="mr-2 h-4 w-4" /> Import CSV
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Import Leads from CSV</DialogTitle>
+                <DialogDescription>
+                  Upload a CSV file containing your leads. The file should have columns for 'school', 'fraternity', 'contact_email', 'contact_name' (optional), 'status' (optional), and 'notes' (optional).
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <Input
+                  id="csv-file"
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileChange}
+                  disabled={importing}
                 />
-                <FormField
-                  control={form.control}
-                  name="fraternity"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Fraternity/Sorority</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Alpha Beta Gamma" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="contact_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contact Name (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="contact_email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Contact Email</FormLabel>
-                      <FormControl>
-                        <Input type="email" placeholder="e.g., john.doe@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                {selectedFile && <p className="text-sm text-muted-foreground">Selected: {selectedFile.name}</p>}
+                {importErrors.length > 0 && (
+                  <div className="text-red-500 text-sm max-h-40 overflow-y-auto border border-red-300 p-2 rounded-md">
+                    <p className="font-semibold mb-1">Import Errors:</p>
+                    <ul className="list-disc pl-5">
+                      {importErrors.map((err, index) => (
+                        <li key={index}>{err.message} (Record: {JSON.stringify(err.record)})</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              <Button onClick={handleImportCsv} disabled={!selectedFile || importing}>
+                {importing ? 'Importing...' : 'Start Import'}
+              </Button>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isAddLeadDialogOpen} onOpenChange={setIsAddLeadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" /> Add New Lead
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Add New Lead</DialogTitle>
+                <DialogDescription>
+                  Enter the details for a potential client.
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="school"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>School</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a status" />
-                          </SelectTrigger>
+                          <Input placeholder="e.g., University of XYZ" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="new">New</SelectItem>
-                          <SelectItem value="contacted">Contacted</SelectItem>
-                          <SelectItem value="converted">Converted</SelectItem>
-                          <SelectItem value="rejected">Rejected</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Notes (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Add any relevant notes here..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? 'Adding Lead...' : 'Add Lead'}
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="fraternity"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Fraternity/Sorority</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Alpha Beta Gamma" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="contact_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contact Name (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., John Doe" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="contact_email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contact Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" placeholder="e.g., john.doe@example.com" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="new">New</SelectItem>
+                            <SelectItem value="contacted">Contacted</SelectItem>
+                            <SelectItem value="converted">Converted</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Add any relevant notes here..." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                    {form.formState.isSubmitting ? 'Adding Lead...' : 'Add Lead'}
+                  </Button>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <Card>
@@ -331,7 +428,7 @@ const LeadDatabase = () => {
                 ) : filteredLeads.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} className="text-center text-muted-foreground py-4">
-                      No leads available. Click "Add New Lead" to get started!
+                      No leads available. Click "Add New Lead" or "Import CSV" to get started!
                     </TableCell>
                   </TableRow>
                 ) : (

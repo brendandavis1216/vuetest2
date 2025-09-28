@@ -8,11 +8,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { showSuccess, showError } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { FileStack, ArrowLeft, Eye, Search } from 'lucide-react'; // Added Search icon
-import { format } from 'date-fns';
+import { FileStack, Eye, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { useAdminEventNotifications } from '@/hooks/useAdminEventNotifications';
-import EditEventDialog from '@/components/EditEventDialog';
-import { Input } from '@/components/ui/input'; // Import Input component
 
 interface Profile {
   id: string;
@@ -21,42 +19,22 @@ interface Profile {
   avatar_url: string | null;
   role: string;
   email: string;
-  totalEvents: number; // New field
-  averageBudget: number; // New field
-  signedContractsCount: number; // New field
-  lastEventDate: string | null; // New field
-  ltv: number; // New field for Lifetime Value
-}
-
-interface Event {
-  id: string;
-  event_name: string | null;
-  event_date: string;
-  artist_name: string | null;
-  budget: number;
-  contact_phone: string;
-  created_at: string;
-  user_id: string;
-  renders_url: string | null;
-  contract_url: string | null;
-  invoice_url: string | null;
-  equipment_list_url: string | null;
-  other_documents_url: string | null;
-  signed_contract_url: string | null;
+  totalEvents: number;
+  averageBudget: number;
+  signedContractsCount: number;
+  lastEventDate: string | null;
+  ltv: number;
 }
 
 const AdminDashboard = () => {
   const { supabase, session } = useSupabase();
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]); // New state for filtered profiles
-  const [searchQuery, setSearchQuery] = useState(''); // New state for search query
+  const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
-  const [userEvents, setUserEvents] = useState<Event[]>([]);
-  const [loadingUserEvents, setLoadingUserEvents] = useState(false);
 
   useAdminEventNotifications();
 
@@ -91,9 +69,8 @@ const AdminDashboard = () => {
       } else if (data) {
         const filtered = (data as Profile[]).filter(profile => profile.role !== 'admin');
         setProfiles(filtered);
-        setFilteredProfiles(filtered); // Initialize filtered profiles with all profiles
-        console.log('Fetched profiles with analytics:', filtered); // Debug log
-        showSuccess('All profiles loaded successfully!');
+        setFilteredProfiles(filtered);
+        showSuccess('All client profiles loaded successfully!');
       }
     } catch (error: any) {
       console.error('Unexpected error calling edge function:', error.message);
@@ -101,24 +78,6 @@ const AdminDashboard = () => {
     } finally {
       setLoadingProfiles(false);
     }
-  }, [supabase]);
-
-  const fetchUserEvents = useCallback(async (userId: string) => {
-    setLoadingUserEvents(true);
-    const { data, error } = await supabase
-      .from('events')
-      .select('*, renders_url, contract_url, invoice_url, equipment_list_url, other_documents_url, signed_contract_url')
-      .eq('user_id', userId)
-      .order('event_date', { ascending: true });
-
-    if (error) {
-      console.error('Error fetching user events:', error.message);
-      showError('Failed to load user events.');
-      setUserEvents([]);
-    } else if (data) {
-      setUserEvents(data as Event[]);
-    }
-    setLoadingUserEvents(false);
   }, [supabase]);
 
   useEffect(() => {
@@ -136,7 +95,6 @@ const AdminDashboard = () => {
     }
   }, [isAdmin, loadingAdminStatus, navigate, fetchAllProfiles]);
 
-  // Effect to filter profiles based on search query
   useEffect(() => {
     const lowerCaseQuery = searchQuery.toLowerCase();
     const results = profiles.filter(profile =>
@@ -147,20 +105,6 @@ const AdminDashboard = () => {
     setFilteredProfiles(results);
   }, [searchQuery, profiles]);
 
-  const calculateCompletionPercentage = (event: Event) => {
-    const documentFields = [
-      event.renders_url,
-      event.contract_url,
-      event.invoice_url,
-      event.equipment_list_url,
-      event.other_documents_url,
-      event.signed_contract_url,
-    ];
-    const uploadedCount = documentFields.filter(url => url !== null).length;
-    const totalCategories = documentFields.length;
-    return totalCategories > 0 ? Math.round((uploadedCount / totalCategories) * 100) : 0;
-  };
-
   if (loadingAdminStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -169,10 +113,10 @@ const AdminDashboard = () => {
     );
   }
 
-  if (loadingProfiles && !selectedUser) {
+  if (loadingProfiles) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Loading user profiles...</p>
+        <p>Loading client profiles...</p>
       </div>
     );
   }
@@ -181,133 +125,72 @@ const AdminDashboard = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <Link to="/admin/event-documents">
-          <Button>
-            <FileStack className="mr-2 h-4 w-4" /> Manage Event Documents
-          </Button>
-        </Link>
+        <div className="flex gap-4">
+          <Link to="/admin/event-documents">
+            <Button>
+              <FileStack className="mr-2 h-4 w-4" /> Manage Event Documents
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {!selectedUser ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>All User Profiles</CardTitle>
-            <CardDescription>View user roles and their associated events.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search clients by school, fraternity, or email..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>School</TableHead>
-                  <TableHead>Fraternity</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProfiles.length === 0 && searchQuery !== '' ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
-                      No clients found matching your search.
-                    </TableCell>
-                  </TableRow>
-                ) : filteredProfiles.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
-                      No client profiles available.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredProfiles.map((profile) => (
-                    <TableRow key={profile.id}>
-                      <TableCell>{profile.school || 'N/A'}</TableCell>
-                      <TableCell>{profile.fraternity || 'N/A'}</TableCell>
-                      <TableCell>{profile.email}</TableCell>
-                      <TableCell className="text-right">
-                        <Link to={`/admin/clients/${profile.id}`}>
-                          <Button variant="outline" size="sm">
-                            <Eye className="mr-2 h-4 w-4" /> View Client Profile
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      ) : (
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <Button variant="outline" onClick={() => setSelectedUser(null)}>
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to All Users
-            </Button>
-            <h2 className="text-2xl font-bold">Events for: {selectedUser.school} {selectedUser.fraternity} ({selectedUser.email})</h2>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Client Profiles</CardTitle>
+          <CardDescription>View and manage all registered client accounts.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search clients by school, fraternity, or email..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
           </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>User's Events</CardTitle>
-              <CardDescription>All events created by this user.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loadingUserEvents ? (
-                <div className="space-y-4">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ) : userEvents.length === 0 ? (
-                <p className="text-muted-foreground">This user has not created any events yet.</p>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>School</TableHead>
+                <TableHead>Fraternity</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredProfiles.length === 0 && searchQuery !== '' ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                    No clients found matching your search.
+                  </TableCell>
+                </TableRow>
+              ) : filteredProfiles.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                    No client profiles available.
+                  </TableCell>
+                </TableRow>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Event Name/Theme</TableHead>
-                      <TableHead>Event Date</TableHead>
-                      <TableHead>Artist Name</TableHead>
-                      <TableHead>Budget</TableHead>
-                      <TableHead>Completion</TableHead>
-                      <TableHead className="text-center min-w-[120px]">View Documents</TableHead>
-                      <TableHead className="text-center min-w-[80px]">Edit</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {userEvents.map((event) => (
-                      <TableRow key={event.id}>
-                        <TableCell className="font-medium">{event.event_name || 'Untitled Event'}</TableCell>
-                        <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
-                        <TableCell>{event.artist_name || 'N/A'}</TableCell>
-                        <TableCell>${event.budget.toLocaleString()}</TableCell>
-                        <TableCell>{calculateCompletionPercentage(event)}%</TableCell>
-                        <TableCell className="text-center">
-                          <Link to={`/events/${event.id}`}>
-                            <Button variant="outline" size="sm">
-                              View Documents
-                            </Button>
-                          </Link>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <EditEventDialog event={event} onEventUpdated={fetchUserEvents.bind(null, selectedUser.id)} />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                filteredProfiles.map((profile) => (
+                  <TableRow key={profile.id}>
+                    <TableCell>{profile.school || 'N/A'}</TableCell>
+                    <TableCell>{profile.fraternity || 'N/A'}</TableCell>
+                    <TableCell>{profile.email}</TableCell>
+                    <TableCell className="text-right">
+                      <Link to={`/admin/clients/${profile.id}`}>
+                        <Button variant="outline" size="sm">
+                          <Eye className="mr-2 h-4 w-4" /> View Profile
+                        </Button>
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };

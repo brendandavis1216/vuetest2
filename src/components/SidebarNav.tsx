@@ -3,7 +3,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, User, Shield, BarChart, CalendarDays, LogOut, Users, FileText } from 'lucide-react'; // Added FileText
+import { Home, User, Shield, BarChart, CalendarDays, LogOut, Users, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarNavProps {
@@ -46,19 +46,15 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
       label: "Manage Documents",
       roles: ['admin'],
     },
-    {
-      to: "/admin/clients", // New route for client management
-      icon: Users,
-      label: "Manage Clients",
-      roles: ['admin'],
-    },
+    // Removed the "Manage Clients" link as it's now part of the Admin Dashboard
   ];
 
   return (
     <nav className="flex flex-col gap-2 p-4">
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = location.pathname === item.to || (item.to === "/admin" && location.pathname.startsWith("/admin") && location.pathname !== "/admin/event-documents" && location.pathname !== "/admin/analytics" && location.pathname !== "/admin/calendar" && location.pathname !== "/admin/clients");
+        // Adjusted isActive logic: Admin Dashboard is active if on /admin or any admin sub-path
+        const isActive = item.to === location.pathname || (item.to === "/admin" && location.pathname.startsWith("/admin") && !["/admin/event-documents", "/admin/analytics", "/admin/calendar"].some(path => location.pathname.startsWith(path)));
         
         if ((isAdmin && item.roles.includes('admin')) || (!isAdmin && item.roles.includes('client') && !item.to.startsWith('/admin'))) {
           return (

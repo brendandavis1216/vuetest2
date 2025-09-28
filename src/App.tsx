@@ -13,7 +13,6 @@ import AdminEventDocuments from "./pages/AdminEventDocuments";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminCalendar from "./pages/AdminCalendar";
 import AdminClientProfile from "./pages/AdminClientProfile";
-import AdminClients from "./pages/AdminClients"; // Import the new AdminClients page
 import EventDetails from "./pages/EventDetails";
 import MainLayout from "./components/MainLayout";
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
@@ -108,9 +107,7 @@ const App = () => (
                 <Route path="/admin/event-documents" element={<AdminEventDocuments />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
                 <Route path="/admin/calendar" element={<AdminCalendar />} />
-                <Route path="/admin/clients" element={<AdminClients />} /> {/* New AdminClients route */}
                 <Route path="/admin/clients/:userId" element={<AdminClientProfile />} />
-                <Route path="/events/:id" element={<EventDetails />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

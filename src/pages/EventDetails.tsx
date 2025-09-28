@@ -30,7 +30,7 @@ interface Event {
 }
 
 const EventDetails = () => {
-  const { id } = useParams<{ id: string }>();
+  const { eventId } = useParams<{ eventId: string }>(); // Changed from 'id' to 'eventId'
   const navigate = useNavigate();
   const { supabase, session } = useSupabase();
   const [event, setEvent] = useState<Event | null>(null);
@@ -56,7 +56,7 @@ const EventDetails = () => {
   }, [session, supabase]);
 
   const fetchEventDetails = useCallback(async () => {
-    if (!id) {
+    if (!eventId) { // Using eventId
       showError('Event ID missing.');
       navigate('/dashboard', { replace: true });
       return;
@@ -66,7 +66,7 @@ const EventDetails = () => {
     const { data, error } = await supabase
       .from('events')
       .select('*, signed_contract_url')
-      .eq('id', id)
+      .eq('id', eventId) // Using eventId
       .single();
 
     if (error) {
@@ -77,7 +77,7 @@ const EventDetails = () => {
       setEvent(data as Event);
     }
     setLoading(false);
-  }, [id, supabase, navigate, isAdmin]);
+  }, [eventId, supabase, navigate, isAdmin]); // Dependency on eventId
 
   useEffect(() => {
     checkAdminStatus();

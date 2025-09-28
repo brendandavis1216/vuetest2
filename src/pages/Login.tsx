@@ -24,11 +24,22 @@ const LoginPage = () => {
                 colors: {
                   brand: 'hsl(var(--primary))',
                   brandAccent: 'hsl(var(--primary-foreground))',
+                  // Custom colors for dark theme readability
+                  inputBackground: 'hsl(var(--input))', // Use our input background color
+                  inputText: 'hsl(var(--foreground))', // White text
+                  inputPlaceholder: 'hsl(var(--muted-foreground))', // Light grey placeholder
+                  text: 'hsl(var(--foreground))', // General text color
+                  brandButtonText: 'hsl(var(--primary-foreground))', // Text on brand buttons
+                  defaultButtonBackground: 'hsl(var(--secondary))', // Background for default buttons
+                  defaultButtonText: 'hsl(var(--secondary-foreground))', // Text for default buttons
+                  defaultButtonBorder: 'hsl(var(--border))', // Border for default buttons
+                  divider: 'hsl(var(--border))', // Divider lines
+                  // You can add more specific overrides here if needed
                 },
               },
             },
           }}
-          theme="light"
+          theme="dark" {/* Set theme to dark to ensure proper base styling */}
           // Removed redirectTo prop to allow AuthWrapper to handle navigation
           extraFields={[
             {

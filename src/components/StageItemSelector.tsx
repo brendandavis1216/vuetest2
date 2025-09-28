@@ -79,58 +79,56 @@ const StageItemSelector: React.FC<StageItemSelectorProps> = ({ onAddItem }) => {
         <CardDescription>Browse and add elements to your stage design.</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow flex flex-col p-0">
-        <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex flex-grow">
-          {/* Vertical TabsList for Categories */}
-          <TabsList className="flex flex-col h-full w-40 p-2 border-r bg-muted/20"> {/* Fixed width and background */}
-            <ScrollArea className="flex-grow pr-2"> {/* Added right padding for scrollbar */}
+        <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex flex-col flex-grow">
+          {/* Horizontal TabsList for Categories */}
+          <ScrollArea className="w-full whitespace-nowrap rounded-md border-b">
+            <TabsList className="inline-flex h-auto p-1 text-muted-foreground">
               {categories.map(category => {
                 const Icon = category.icon;
                 return (
                   <TabsTrigger
                     key={category.name}
                     value={category.name}
-                    className="flex items-center justify-start gap-2 w-full px-3 py-2 mb-1 text-left"
+                    className="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                   >
-                    <Icon className="h-4 w-4 flex-shrink-0" />
-                    <span className="flex-grow truncate">{category.label}</span>
+                    <Icon className="mr-2 h-4 w-4 flex-shrink-0" />
+                    {category.label}
                   </TabsTrigger>
                 );
               })}
-            </ScrollArea>
-          </TabsList>
+            </TabsList>
+          </ScrollArea>
 
           {/* Container for TabsContent (Item List) */}
-          <div className="flex-grow flex flex-col">
-            <ScrollArea className="flex-grow p-4">
-              {categories.map(category => (
-                <TabsContent key={category.name} value={category.name} className="mt-0">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3"> {/* Responsive grid for items */}
-                    {itemsInActiveCategory.length > 0 ? (
-                      itemsInActiveCategory.map(item => {
-                        const ItemIcon = item.icon || PlusCircle; // Fallback icon
-                        return (
-                          <Button
-                            key={item.id}
-                            variant="outline"
-                            className="flex items-center justify-between gap-2 h-auto py-3 px-4 text-left"
-                            onClick={() => onAddItem(item)}
-                          >
-                            <div className="flex items-center gap-2">
-                              <ItemIcon className="h-5 w-5 text-primary flex-shrink-0" />
-                              <span className="text-base font-medium truncate">{item.name}</span>
-                            </div>
-                            <PlusCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                          </Button>
-                        );
-                      })
-                    ) : (
-                      <p className="text-muted-foreground col-span-full text-center py-8">No items in this category yet.</p>
-                    )}
-                  </div>
-                </TabsContent>
-              ))}
-            </ScrollArea>
-          </div>
+          <ScrollArea className="flex-grow p-4">
+            {categories.map(category => (
+              <TabsContent key={category.name} value={category.name} className="mt-0">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {itemsInActiveCategory.length > 0 ? (
+                    itemsInActiveCategory.map(item => {
+                      const ItemIcon = item.icon || PlusCircle; // Fallback icon
+                      return (
+                        <Button
+                          key={item.id}
+                          variant="outline"
+                          className="flex items-center justify-between gap-2 h-auto py-3 px-4 text-left"
+                          onClick={() => onAddItem(item)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <ItemIcon className="h-5 w-5 text-primary flex-shrink-0" />
+                            <span className="flex-grow text-base font-medium truncate">{item.name}</span>
+                          </div>
+                          <PlusCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        </Button>
+                      );
+                    })
+                  ) : (
+                    <p className="text-muted-foreground col-span-full text-center py-8">No items in this category yet.</p>
+                  )}
+                </div>
+              </TabsContent>
+            ))}
+          </ScrollArea>
         </Tabs>
       </CardContent>
     </Card>

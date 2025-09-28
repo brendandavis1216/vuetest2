@@ -2,14 +2,15 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { showSuccess, showError } from '@/utils/toast';
-import { useNavigate, Link } from 'react-router-dom'; // Import Link
+import { useNavigate, Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { FileStack } from 'lucide-react'; // Import new icon
+import { FileStack, ArrowLeft, Eye } from 'lucide-react'; // Added ArrowLeft and Eye icons
+import { format } from 'date-fns';
 
 interface Profile {
   id: string;
@@ -17,20 +18,34 @@ interface Profile {
   last_name: string | null;
   avatar_url: string | null;
   role: string;
-  email: string; // Assuming email can be fetched or joined
+  email: string;
+}
+
+interface Event {
+  id: string;
+  event_name: string | null;
+  event_date: string;
+  artist_name: string | null;
+  budget: number;
+  contact_phone: string;
+  created_at: string;
+  user_id: string;
 }
 
 const AdminDashboard = () => {
   const { supabase, session } = useSupabase();
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [loadingAdminStatus, setLoadingAdminStatus] = useState(true); // New state for admin status loading
-  const [loadingProfiles, setLoadingProfiles] = useState(false); // Renamed original loading state
+  const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+  const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null); // Stores userId being updated
+  const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<Profile | null>(null); // State for selected user
+  const [userEvents, setUserEvents] = useState<Event[]>([]); // State for selected user's events
+  const [loadingUserEvents, setLoadingUserEvents] = useState(false);
 
   const checkAdminStatus = useCallback(async () => {
-    setLoadingAdminStatus(true); // Start loading admin status
+    setLoadingAdminStatus(true);
     if (!session) {
       setIsAdmin(false);
       setLoadingAdminStatus(false);
@@ -44,14 +59,14 @@ const AdminDashboard = () => {
     } else {
       setIsAdmin(data);
     }
-    setLoadingAdminStatus(false); // End loading admin status
+    setLoadingAdminStatus(false);
   }, [session, supabase]);
 
   const fetchAllProfiles = useCallback(async () => {
-    setLoadingProfiles(true); // Start loading profiles
+    setLoadingProfiles(true);
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, avatar_url, role, auth_users:id(email)'); // Join with auth.users for email
+      .select('id, first_name, last_name, avatar_url, role, auth_users:id(email)');
 
     if (error) {
       console.error('Error fetching all profiles:', error.message);
@@ -60,12 +75,30 @@ const AdminDashboard = () => {
     } else if (data) {
       const profilesWithEmail = data.map(p => ({
         ...p,
-        email: p.auth_users?.email || 'N/A' // Extract email from joined data
+        email: p.auth_users?.email || 'N/A'
       }));
       setProfiles(profilesWithEmail);
       showSuccess('All profiles loaded successfully!');
     }
-    setLoadingProfiles(false); // End loading profiles
+    setLoadingProfiles(false);
+  }, [supabase]);
+
+  const fetchUserEvents = useCallback(async (userId: string) => {
+    setLoadingUserEvents(true);
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('user_id', userId)
+      .order('event_date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching user events:', error.message);
+      showError('Failed to load user events.');
+      setUserEvents([]);
+    } else if (data) {
+      setUserEvents(data as Event[]);
+    }
+    setLoadingUserEvents(false);
   }, [supabase]);
 
   useEffect(() => {
@@ -73,12 +106,12 @@ const AdminDashboard = () => {
   }, [checkAdminStatus]);
 
   useEffect(() => {
-    if (!loadingAdminStatus) { // Only act after admin status is determined
+    if (!loadingAdminStatus) {
       if (!isAdmin) {
         showError('You do not have administrative access.');
-        navigate('/dashboard', { replace: true }); // Redirect non-admins
+        navigate('/dashboard', { replace: true });
       } else {
-        fetchAllProfiles(); // Fetch profiles only if admin
+        fetchAllProfiles();
       }
     }
   }, [isAdmin, loadingAdminStatus, navigate, fetchAllProfiles]);
@@ -98,7 +131,6 @@ const AdminDashboard = () => {
         showError(`Failed to update role: ${data.error}`);
       } else {
         showSuccess('User role updated successfully!');
-        // Optimistically update UI or re-fetch profiles
         setProfiles(prevProfiles =>
           prevProfiles.map(p => (p.id === userId ? { ...p, role: newRole } : p))
         );
@@ -111,6 +143,11 @@ const AdminDashboard = () => {
     }
   };
 
+  const handleViewUserEvents = (user: Profile) => {
+    setSelectedUser(user);
+    fetchUserEvents(user.id);
+  };
+
   if (loadingAdminStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -119,10 +156,7 @@ const AdminDashboard = () => {
     );
   }
 
-  // If we reach here, loadingAdminStatus is false.
-  // If isAdmin is false, the useEffect above would have redirected.
-  // So, if we are here, isAdmin must be true.
-  if (loadingProfiles) {
+  if (loadingProfiles && !selectedUser) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>Loading user profiles...</p>
@@ -140,18 +174,14 @@ const AdminDashboard = () => {
           </Button>
         </Link>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>All User Profiles</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loadingProfiles ? ( // Use loadingProfiles here
-            <div className="space-y-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (
+
+      {!selectedUser ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>All User Profiles</CardTitle>
+            <CardDescription>Manage user roles and view their associated events.</CardDescription>
+          </CardHeader>
+          <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -160,7 +190,7 @@ const AdminDashboard = () => {
                   <TableHead>Last Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -185,18 +215,81 @@ const AdminDashboard = () => {
                         </SelectContent>
                       </Select>
                     </TableCell>
-                    <TableCell>
-                      {isUpdatingRole === profile.id && (
-                        <span className="text-sm text-gray-500">Updating...</span>
-                      )}
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewUserEvents(profile)}
+                        disabled={isUpdatingRole === profile.id}
+                      >
+                        <Eye className="mr-2 h-4 w-4" /> View Events
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : (
+        <div>
+          <div className="flex items-center justify-between mb-6">
+            <Button variant="outline" onClick={() => setSelectedUser(null)}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to All Users
+            </Button>
+            <h2 className="text-2xl font-bold">Events for: {selectedUser.first_name} {selectedUser.last_name} ({selectedUser.email})</h2>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>User's Events</CardTitle>
+              <CardDescription>All events created by this user.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingUserEvents ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ) : userEvents.length === 0 ? (
+                <p className="text-muted-foreground">This user has not created any events yet.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Event Name/Theme</TableHead>
+                      <TableHead>Event Date</TableHead>
+                      <TableHead>Artist Name</TableHead>
+                      <TableHead>Budget</TableHead>
+                      <TableHead>Contact Phone</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userEvents.map((event) => (
+                      <TableRow key={event.id}>
+                        <TableCell className="font-medium">{event.event_name || 'Untitled Event'}</TableCell>
+                        <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
+                        <TableCell>{event.artist_name || 'N/A'}</TableCell>
+                        <TableCell>${event.budget.toLocaleString()}</TableCell>
+                        <TableCell>{event.contact_phone}</TableCell>
+                        <TableCell className="text-right">
+                          <Link to={`/events/${event.id}`}>
+                            <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only">View Event Details</span>
+                            </Button>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

@@ -44,15 +44,17 @@ const MainLayout: React.FC = () => {
     <div className="min-h-screen flex flex-col">
       <header className="bg-primary text-primary-foreground p-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
-          <Link to="/dashboard" className="text-2xl font-bold">
+          <Link to={isAdmin ? "/admin" : "/dashboard"} className="text-2xl font-bold">
             My App
           </Link>
           <nav className="flex items-center space-x-4">
-            <Link to="/dashboard">
-              <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10">
-                <Home className="mr-2 h-4 w-4" /> Dashboard
-              </Button>
-            </Link>
+            {!isAdmin && ( // Only show Dashboard link if not an admin
+              <Link to="/dashboard">
+                <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10">
+                  <Home className="mr-2 h-4 w-4" /> Dashboard
+                </Button>
+              </Link>
+            )}
             <Link to="/profile">
               <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10">
                 <User className="mr-2 h-4 w-4" /> Profile

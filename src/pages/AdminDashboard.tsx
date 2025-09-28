@@ -205,6 +205,9 @@ const AdminDashboard = () => {
     return totalCategories > 0 ? Math.round((uploadedCount / totalCategories) * 100) : 0;
   };
 
+  // Create a map for quick chapter name lookup
+  const chapterMap = new Map(chapters.map(chapter => [chapter.id, chapter.name]));
+
   if (loadingAdminStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -264,7 +267,9 @@ const AdminDashboard = () => {
                         disabled={loadingChapters}
                       >
                         <SelectTrigger className="w-[180px]">
-                          <SelectValue placeholder="Assign Chapter" />
+                          <SelectValue>
+                            {profile.chapter_id ? chapterMap.get(profile.chapter_id) || 'Unknown Chapter' : 'Unassigned'}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="unassign-chapter">Unassign Chapter</SelectItem>

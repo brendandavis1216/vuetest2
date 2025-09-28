@@ -20,6 +20,10 @@ interface Profile {
   avatar_url: string | null;
   role: string;
   email: string;
+  totalEvents: number; // New field
+  averageBudget: number; // New field
+  signedContractsCount: number; // New field
+  lastEventDate: string | null; // New field
 }
 
 interface Event {
@@ -82,7 +86,7 @@ const AdminDashboard = () => {
       } else if (data) {
         const filteredProfiles = (data as Profile[]).filter(profile => profile.role !== 'admin');
         setProfiles(filteredProfiles);
-        console.log('Fetched profiles:', filteredProfiles); // Debug log
+        console.log('Fetched profiles with analytics:', filteredProfiles); // Debug log
         showSuccess('All profiles loaded successfully!');
       }
     } catch (error: any) {
@@ -185,6 +189,7 @@ const AdminDashboard = () => {
                   <TableHead>School</TableHead>
                   <TableHead>Fraternity</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead className="min-w-[200px]">Client Profile</TableHead> {/* New Column */}
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -194,6 +199,14 @@ const AdminDashboard = () => {
                     <TableCell>{profile.school || 'N/A'}</TableCell>
                     <TableCell>{profile.fraternity || 'N/A'}</TableCell>
                     <TableCell>{profile.email}</TableCell>
+                    <TableCell> {/* Client Profile Cell */}
+                      <div className="text-sm text-muted-foreground">
+                        <p>Events: <span className="font-medium text-foreground">{profile.totalEvents}</span></p>
+                        <p>Avg. Budget: <span className="font-medium text-foreground">${profile.averageBudget.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span></p>
+                        <p>Signed Contracts: <span className="font-medium text-foreground">{profile.signedContractsCount}</span></p>
+                        <p>Last Event: <span className="font-medium text-foreground">{profile.lastEventDate ? format(new Date(profile.lastEventDate), 'MMM dd, yyyy') : 'N/A'}</span></p>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="outline"

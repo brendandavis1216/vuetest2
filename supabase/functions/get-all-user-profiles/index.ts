@@ -40,7 +40,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Fetch all profiles, without chapter_id
+    // Fetch all profiles
     const { data: profiles, error: profilesError } = await supabaseServiceRoleClient
       .from('profiles')
       .select('id, school, fraternity, avatar_url, role');
@@ -64,16 +64,65 @@ serve(async (req) => {
       });
     }
 
+    // Fetch all events to aggregate data
+    const { data: events, error: eventsError } = await supabaseServiceRoleClient
+      .from('events')
+      .select('user_id, budget, event_date, signed_contract_url');
+
+    if (eventsError) {
+      console.error('Error fetching events with service role:', eventsError.message);
+      return new Response(JSON.stringify({ error: `Failed to fetch events: ${eventsError.message}` }), {
+        status: 500,
+        headers: corsHeaders,
+      });
+    }
+
+    // Aggregate event data per user
+    const userEventAnalytics = new Map<string, {
+      totalEvents: number;
+      totalBudget: number;
+      signedContractsCount: number;
+      lastEventDate: string | null;
+    }>();
+
+    events.forEach(event => {
+      const userId = event.user_id;
+      if (!userEventAnalytics.has(userId)) {
+        userEventAnalytics.set(userId, {
+          totalEvents: 0,
+          totalBudget: 0,
+          signedContractsCount: 0,
+          lastEventDate: null,
+        });
+      }
+      const analytics = userEventAnalytics.get(userId)!;
+      analytics.totalEvents++;
+      analytics.totalBudget += event.budget;
+      if (event.signed_contract_url) {
+        analytics.signedContractsCount++;
+      }
+      if (!analytics.lastEventDate || (event.event_date > analytics.lastEventDate)) {
+        analytics.lastEventDate = event.event_date;
+      }
+    });
+
     // Map authUsers to a dictionary for efficient lookup
     const userEmailMap = new Map(authUsers.users.map(user => [user.id, user.email]));
 
-    // Combine profiles with their emails
-    const profilesWithEmails = profiles.map(profile => ({
-      ...profile,
-      email: userEmailMap.get(profile.id) || 'N/A', // Assign email, default to 'N/A' if not found
-    }));
+    // Combine profiles with their emails and event analytics
+    const profilesWithAnalytics = profiles.map(profile => {
+      const analytics = userEventAnalytics.get(profile.id);
+      return {
+        ...profile,
+        email: userEmailMap.get(profile.id) || 'N/A',
+        totalEvents: analytics?.totalEvents || 0,
+        averageBudget: analytics?.totalEvents ? (analytics.totalBudget / analytics.totalEvents) : 0,
+        signedContractsCount: analytics?.signedContractsCount || 0,
+        lastEventDate: analytics?.lastEventDate || null,
+      };
+    });
 
-    return new Response(JSON.stringify(profilesWithEmails), {
+    return new Response(JSON.stringify(profilesWithAnalytics), {
       status: 200,
       headers: corsHeaders,
     });

@@ -11,7 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminEventDocuments from "./pages/AdminEventDocuments";
 import AdminAnalytics from "./pages/AdminAnalytics";
-import AdminCalendar from "./pages/AdminCalendar"; // Import AdminCalendar
+import AdminCalendar from "./pages/AdminCalendar";
+import AdminClientProfile from "./pages/AdminClientProfile"; // Import AdminClientProfile
 import EventDetails from "./pages/EventDetails";
 import MainLayout from "./components/MainLayout";
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
@@ -63,7 +64,7 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         // Allow access to /admin/event-documents and /admin/analytics for non-admins if they are explicitly linked,
         // but the pages themselves will handle permission checks.
         // For other /admin paths, redirect to dashboard.
-        if (currentPath.startsWith('/admin') && !currentPath.startsWith('/admin/event-documents') && !currentPath.startsWith('/admin/analytics') && !currentPath.startsWith('/admin/calendar')) {
+        if (currentPath.startsWith('/admin') && !currentPath.startsWith('/admin/event-documents') && !currentPath.startsWith('/admin/analytics') && !currentPath.startsWith('/admin/calendar') && !currentPath.startsWith('/admin/clients')) {
           navigate('/dashboard', { replace: true });
         }
       }
@@ -103,7 +104,8 @@ const App = () => (
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/event-documents" element={<AdminEventDocuments />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                <Route path="/admin/calendar" element={<AdminCalendar />} /> {/* New AdminCalendar route */}
+                <Route path="/admin/calendar" element={<AdminCalendar />} />
+                <Route path="/admin/clients/:userId" element={<AdminClientProfile />} /> {/* New AdminClientProfile route */}
                 <Route path="/events/:id" element={<EventDetails />} />
               </Route>
 

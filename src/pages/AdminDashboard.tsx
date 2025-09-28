@@ -189,8 +189,7 @@ const AdminDashboard = () => {
                   <TableHead>School</TableHead>
                   <TableHead>Fraternity</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead className="min-w-[200px]">Client Profile</TableHead> {/* New Column */}
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Actions</TableHead> {/* Changed column header */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -199,22 +198,12 @@ const AdminDashboard = () => {
                     <TableCell>{profile.school || 'N/A'}</TableCell>
                     <TableCell>{profile.fraternity || 'N/A'}</TableCell>
                     <TableCell>{profile.email}</TableCell>
-                    <TableCell> {/* Client Profile Cell */}
-                      <div className="text-sm text-muted-foreground">
-                        <p>Events: <span className="font-medium text-foreground">{profile.totalEvents}</span></p>
-                        <p>Avg. Budget: <span className="font-medium text-foreground">${profile.averageBudget.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span></p>
-                        <p>Signed Contracts: <span className="font-medium text-foreground">{profile.signedContractsCount}</span></p>
-                        <p>Last Event: <span className="font-medium text-foreground">{profile.lastEventDate ? format(new Date(profile.lastEventDate), 'MMM dd, yyyy') : 'N/A'}</span></p>
-                      </div>
-                    </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewUserEvents(profile)}
-                      >
-                        <Eye className="mr-2 h-4 w-4" /> View Events
-                      </Button>
+                      <Link to={`/admin/clients/${profile.id}`}> {/* Link to new client profile page */}
+                        <Button variant="outline" size="sm">
+                          <Eye className="mr-2 h-4 w-4" /> View Client Profile
+                        </Button>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -252,7 +241,6 @@ const AdminDashboard = () => {
                       <TableHead>Event Date</TableHead>
                       <TableHead>Artist Name</TableHead>
                       <TableHead>Budget</TableHead>
-                      <TableHead>Contact Phone</TableHead>
                       <TableHead>Completion</TableHead>
                       <TableHead className="text-center min-w-[120px]">View Documents</TableHead>
                       <TableHead className="text-center min-w-[80px]">Edit</TableHead>
@@ -265,7 +253,6 @@ const AdminDashboard = () => {
                         <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
                         <TableCell>{event.artist_name || 'N/A'}</TableCell>
                         <TableCell>${event.budget.toLocaleString()}</TableCell>
-                        <TableCell>{event.contact_phone}</TableCell>
                         <TableCell>{calculateCompletionPercentage(event)}%</TableCell>
                         <TableCell className="text-center">
                           <Link to={`/events/${event.id}`}>

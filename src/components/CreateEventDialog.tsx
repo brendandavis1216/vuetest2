@@ -20,7 +20,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription, // Added FormDescription here
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';
@@ -30,15 +30,16 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { showError, showSuccess } from '@/utils/toast';
-import { Switch } from '@/components/ui/switch'; // Import Switch component
-import { Label } from '@/components/ui/label'; // Import Label component
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
+  event_name: z.string().optional(), // New field for event name/theme
   event_date: z.date({
     required_error: 'Event date is required.',
   }),
-  hiring_artist: z.boolean().default(false), // New field for hiring artist
-  artist_name: z.string().optional(), // Now optional, conditionally validated
+  hiring_artist: z.boolean().default(false),
+  artist_name: z.string().optional(),
   budget: z.preprocess(
     (val) => Number(val),
     z.number().min(0, {
@@ -49,7 +50,6 @@ const formSchema = z.object({
     message: 'Invalid phone number format.',
   }),
 }).superRefine((data, ctx) => {
-  // Conditional validation for artist_name
   if (data.hiring_artist && (!data.artist_name || data.artist_name.trim() === '')) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -70,10 +70,11 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onEventCreated })
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      event_name: '', // Default value for new field
       artist_name: '',
       budget: 0,
       contact_phone: '',
-      hiring_artist: false, // Default to not hiring an artist
+      hiring_artist: false,
     },
   });
 
@@ -83,13 +84,13 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onEventCreated })
       return;
     }
 
-    const { event_date, hiring_artist, artist_name, budget, contact_phone } = values;
+    const { event_name, event_date, hiring_artist, artist_name, budget, contact_phone } = values;
 
-    // Set artist_name to null if not hiring an artist
     const finalArtistName = hiring_artist ? artist_name : null;
 
     const { error } = await supabase.from('events').insert({
       user_id: session.user.id,
+      event_name: event_name || null, // Save event name
       event_date: format(event_date, 'yyyy-MM-dd'),
       artist_name: finalArtistName,
       budget,
@@ -103,11 +104,10 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onEventCreated })
       showSuccess('Event created successfully!');
       form.reset();
       setOpen(false);
-      onEventCreated(); // Notify parent component to refresh events
+      onEventCreated();
     }
   };
 
-  // Watch the hiring_artist field to conditionally render the artist name input
   const isHiringArtist = form.watch('hiring_artist');
 
   return (
@@ -124,6 +124,19 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onEventCreated })
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="event_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event Name/Theme</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Summer Music Fest" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="event_date"
@@ -211,13 +224,12 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onEventCreated })
                         type="number"
                         placeholder="e.g., 5000"
                         {...field}
-                        className="pl-7" // Add padding to make space for the dollar sign
+                        className="pl-7"
                         onChange={(e) => {
-                          // Ensure the value is a number or empty string for the input
                           const value = e.target.value;
                           field.onChange(value === '' ? '' : Number(value));
                         }}
-                        value={field.value === 0 ? '' : field.value} // Display empty string for 0
+                        value={field.value === 0 ? '' : field.value}
                       />
                     </div>
                   </FormControl>

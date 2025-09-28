@@ -10,11 +10,12 @@ import { showError } from '@/utils/toast';
 import { format } from 'date-fns';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Eye } from 'lucide-react'; // Import Eye icon
-import { Link } from 'react-router-dom'; // Import Link for navigation
+import { Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Event {
   id: string;
+  event_name: string | null; // Added event_name
   event_date: string;
   artist_name: string | null;
   budget: number;
@@ -80,6 +81,7 @@ const Dashboard = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Event Name/Theme</TableHead> {/* New Table Head */}
                     <TableHead>Event Date</TableHead>
                     <TableHead>Artist Name</TableHead>
                     <TableHead>Budget</TableHead>
@@ -90,6 +92,7 @@ const Dashboard = () => {
                 <TableBody>
                   {events.map((event) => (
                     <TableRow key={event.id}>
+                      <TableCell className="font-medium">{event.event_name || 'Untitled Event'}</TableCell> {/* Display event name */}
                       <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
                       <TableCell>{event.artist_name || 'N/A'}</TableCell>
                       <TableCell>${event.budget.toLocaleString()}</TableCell>

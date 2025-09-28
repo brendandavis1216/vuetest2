@@ -33,6 +33,7 @@ import { showError, showSuccess } from '@/utils/toast';
 import { Switch } from '@/components/ui/switch';
 
 const formSchema = z.object({
+  event_name: z.string().optional(), // New field for event name/theme
   event_date: z.date({
     required_error: 'Event date is required.',
   }),
@@ -59,6 +60,7 @@ const formSchema = z.object({
 
 interface Event {
   id: string;
+  event_name: string | null; // Added event_name
   event_date: string;
   artist_name: string | null;
   budget: number;
@@ -78,8 +80,9 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ event, onEventUpdated
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      event_name: event.event_name || '', // Pre-fill event name
       event_date: new Date(event.event_date),
-      hiring_artist: !!event.artist_name, // Set switch based on if artist_name exists
+      hiring_artist: !!event.artist_name,
       artist_name: event.artist_name || '',
       budget: event.budget,
       contact_phone: event.contact_phone,
@@ -90,6 +93,7 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ event, onEventUpdated
   useEffect(() => {
     if (open) {
       form.reset({
+        event_name: event.event_name || '',
         event_date: new Date(event.event_date),
         hiring_artist: !!event.artist_name,
         artist_name: event.artist_name || '',
@@ -105,13 +109,14 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ event, onEventUpdated
       return;
     }
 
-    const { event_date, hiring_artist, artist_name, budget, contact_phone } = values;
+    const { event_name, event_date, hiring_artist, artist_name, budget, contact_phone } = values;
 
     const finalArtistName = hiring_artist ? artist_name : null;
 
     const { error } = await supabase
       .from('events')
       .update({
+        event_name: event_name || null, // Update event name
         event_date: format(event_date, 'yyyy-MM-dd'),
         artist_name: finalArtistName,
         budget,
@@ -119,7 +124,7 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ event, onEventUpdated
         updated_at: new Date().toISOString(),
       })
       .eq('id', event.id)
-      .eq('user_id', session.user.id); // Ensure only the owner can update
+      .eq('user_id', session.user.id);
 
     if (error) {
       console.error('Error updating event:', error.message);
@@ -127,7 +132,7 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ event, onEventUpdated
     } else {
       showSuccess('Event updated successfully!');
       setOpen(false);
-      onEventUpdated(); // Notify parent component to refresh events
+      onEventUpdated();
     }
   };
 
@@ -150,6 +155,19 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ event, onEventUpdated
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="event_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Event Name/Theme</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Summer Music Fest" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="event_date"

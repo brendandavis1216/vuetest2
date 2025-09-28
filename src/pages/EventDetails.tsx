@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface Event {
   id: string;
+  event_name: string | null; // Added event_name
   event_date: string;
   artist_name: string | null;
   budget: number;
@@ -39,13 +40,13 @@ const EventDetails = () => {
       .from('events')
       .select('*')
       .eq('id', id)
-      .eq('user_id', session.user.id) // Ensure only the owner can view
+      .eq('user_id', session.user.id)
       .single();
 
     if (error) {
       console.error('Error fetching event details:', error.message);
       showError('Failed to load event details. You might not have access.');
-      navigate('/dashboard', { replace: true }); // Redirect if event not found or no access
+      navigate('/dashboard', { replace: true });
     } else if (data) {
       setEvent(data as Event);
     }
@@ -82,7 +83,7 @@ const EventDetails = () => {
         <Button variant="outline" onClick={() => navigate('/dashboard')}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
         </Button>
-        <h1 className="text-3xl font-bold">Event: {event.artist_name || 'Untitled Event'}</h1>
+        <h1 className="text-3xl font-bold">Event: {event.event_name || 'Untitled Event'}</h1> {/* Display event name */}
       </div>
 
       <Card>
@@ -91,6 +92,10 @@ const EventDetails = () => {
           <CardDescription>Key details about your event.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Event Name/Theme</p>
+            <p className="text-lg font-semibold">{event.event_name || 'N/A'}</p>
+          </div>
           <div>
             <p className="text-sm font-medium text-muted-foreground">Event Date</p>
             <p className="text-lg font-semibold">{format(new Date(event.event_date), 'PPP')}</p>

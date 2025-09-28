@@ -7,6 +7,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
 import ProfilePage from "./pages/Profile";
+import Dashboard from "./pages/Dashboard"; // Import the new Dashboard page
+import MainLayout from "./components/MainLayout"; // Import the new MainLayout
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
 import React, { useEffect } from "react";
 
@@ -24,9 +26,9 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const currentPath = location.pathname;
 
     if (session) {
-      // If authenticated, redirect away from login/index pages
+      // If authenticated, redirect away from login/index pages to dashboard
       if (currentPath === '/login' || currentPath === '/') {
-        navigate('/profile', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     } else {
       // If unauthenticated, redirect to login page (unless already there)
@@ -57,8 +59,14 @@ const App = () => (
           <AuthWrapper>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Index />} /> {/* Public landing page */}
+              
+              {/* Authenticated routes wrapped in MainLayout */}
+              <Route element={<MainLayout />}>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/profile" element={<ProfilePage />} />
+              </Route>
+
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

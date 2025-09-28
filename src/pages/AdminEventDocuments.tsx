@@ -175,41 +175,49 @@ const AdminEventDocuments = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Signed Contract: Admin can only view */}
             <DocumentUploadCard
               eventId={selectedEvent.id}
               documentType="signed_contract"
               currentUrl={selectedEvent.signed_contract_url}
               onDocumentUpdated={handleEventDocumentUpdated}
+              readOnly={true} // Admin can only view this document
             />
+            {/* Other Documents: Admin can upload/delete */}
             <DocumentUploadCard
               eventId={selectedEvent.id}
               documentType="renders"
               currentUrl={selectedEvent.renders_url}
               onDocumentUpdated={handleEventDocumentUpdated}
+              readOnly={false}
             />
             <DocumentUploadCard
               eventId={selectedEvent.id}
               documentType="contract"
               currentUrl={selectedEvent.contract_url}
               onDocumentUpdated={handleEventDocumentUpdated}
+              readOnly={false}
             />
             <DocumentUploadCard
               eventId={selectedEvent.id}
               documentType="invoice"
               currentUrl={selectedEvent.invoice_url}
               onDocumentUpdated={handleEventDocumentUpdated}
+              readOnly={false}
             />
             <DocumentUploadCard
               eventId={selectedEvent.id}
               documentType="equipment_list"
               currentUrl={selectedEvent.equipment_list_url}
               onDocumentUpdated={handleEventDocumentUpdated}
+              readOnly={false}
             />
             <DocumentUploadCard
               eventId={selectedEvent.id}
               documentType="other_documents"
               currentUrl={selectedEvent.other_documents_url}
               onDocumentUpdated={handleEventDocumentUpdated}
+              readOnly={false}
             />
           </div>
         </div>

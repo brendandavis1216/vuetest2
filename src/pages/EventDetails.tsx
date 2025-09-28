@@ -108,14 +108,6 @@ const EventDetails = () => {
     );
   }
 
-  const handleViewDocument = (url: string | null, documentType: string) => {
-    if (url) {
-      window.open(url, '_blank');
-    } else {
-      showError(`No ${documentType} available for this event.`);
-    }
-  };
-
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between mb-6">
@@ -156,100 +148,51 @@ const EventDetails = () => {
 
       <h2 className="text-2xl font-bold mt-8 mb-4">Event Documents</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* DocumentUploadCard for Signed Contract - visible to both admin and client */}
+        {/* Signed Contract: Client uploads, Admin views */}
         <DocumentUploadCard
           eventId={event.id}
           documentType="signed_contract"
           currentUrl={event.signed_contract_url}
           onDocumentUpdated={fetchEventDetails}
+          readOnly={isAdmin} // Client can upload (readOnly=false), Admin can only view (readOnly=true)
         />
 
-        {isAdmin ? (
-          <>
-            <DocumentUploadCard
-              eventId={event.id}
-              documentType="renders"
-              currentUrl={event.renders_url}
-              onDocumentUpdated={fetchEventDetails}
-            />
-            <DocumentUploadCard
-              eventId={event.id}
-              documentType="contract"
-              currentUrl={event.contract_url}
-              onDocumentUpdated={fetchEventDetails}
-            />
-            <DocumentUploadCard
-              eventId={event.id}
-              documentType="invoice"
-              currentUrl={event.invoice_url}
-              onDocumentUpdated={fetchEventDetails}
-            />
-            <DocumentUploadCard
-              eventId={event.id}
-              documentType="equipment_list"
-              currentUrl={event.equipment_list_url}
-              onDocumentUpdated={fetchEventDetails}
-            />
-            <DocumentUploadCard
-              eventId={event.id}
-              documentType="other_documents"
-              currentUrl={event.other_documents_url}
-              onDocumentUpdated={fetchEventDetails}
-            />
-          </>
-        ) : (
-          <>
-            <Card>
-              <CardHeader><CardTitle>Renders</CardTitle></CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">{event.renders_url ? 'Renders available.' : 'No renders available yet.'}</p>
-                <Button variant="outline" className="mt-4" onClick={() => handleViewDocument(event.renders_url, 'Renders')} disabled={!event.renders_url}>
-                  View Renders
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle>Contract</CardTitle></CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">{event.contract_url ? 'Contract available.' : 'No contract available yet.'}</p>
-                <Button variant="outline" className="mt-4" onClick={() => handleViewDocument(event.contract_url, 'Contract')} disabled={!event.contract_url}>
-                  View Contract
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle>Invoice</CardTitle></CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">{event.invoice_url ? 'Invoice available.' : 'No invoice available yet.'}</p>
-                <Button variant="outline" className="mt-4" onClick={() => handleViewDocument(event.invoice_url, 'Invoice')} disabled={!event.invoice_url}>
-                  View Invoice
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle>Equipment List</CardTitle></CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">{event.equipment_list_url ? 'Equipment list available.' : 'No equipment list available yet.'}</p>
-                <Button variant="outline" className="mt-4" onClick={() => handleViewDocument(event.equipment_list_url, 'Equipment List')} disabled={!event.equipment_list_url}>
-                  View Equipment List
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader><CardTitle>Other Documents</CardTitle></CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">{event.other_documents_url ? 'Other documents available.' : 'No other documents available yet.'}</p>
-                <Button variant="outline" className="mt-4" onClick={() => handleViewDocument(event.other_documents_url, 'Other Documents')} disabled={!event.other_documents_url}>
-                  View Documents
-                </Button>
-              </CardContent>
-            </Card>
-          </>
-        )}
+        {/* Other Documents: Admin uploads, Client views */}
+        <DocumentUploadCard
+          eventId={event.id}
+          documentType="renders"
+          currentUrl={event.renders_url}
+          onDocumentUpdated={fetchEventDetails}
+          readOnly={!isAdmin} // Admin can upload (readOnly=false), Client can only view (readOnly=true)
+        />
+        <DocumentUploadCard
+          eventId={event.id}
+          documentType="contract"
+          currentUrl={event.contract_url}
+          onDocumentUpdated={fetchEventDetails}
+          readOnly={!isAdmin}
+        />
+        <DocumentUploadCard
+          eventId={event.id}
+          documentType="invoice"
+          currentUrl={event.invoice_url}
+          onDocumentUpdated={fetchEventDetails}
+          readOnly={!isAdmin}
+        />
+        <DocumentUploadCard
+          eventId={event.id}
+          documentType="equipment_list"
+          currentUrl={event.equipment_list_url}
+          onDocumentUpdated={fetchEventDetails}
+          readOnly={!isAdmin}
+        />
+        <DocumentUploadCard
+          eventId={event.id}
+          documentType="other_documents"
+          currentUrl={event.other_documents_url}
+          onDocumentUpdated={fetchEventDetails}
+          readOnly={!isAdmin}
+        />
       </div>
     </div>
   );

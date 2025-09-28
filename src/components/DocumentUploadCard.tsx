@@ -11,9 +11,10 @@ import { Upload, FileText, Trash2 } from 'lucide-react';
 
 interface DocumentUploadCardProps {
   eventId: string;
-  documentType: 'renders' | 'contract' | 'invoice' | 'equipment_list' | 'other_documents';
+  documentType: 'renders' | 'contract' | 'invoice' | 'equipment_list' | 'other_documents' | 'signed_contract';
   currentUrl: string | null;
   onDocumentUpdated: () => void;
+  readOnly?: boolean; // New prop to control editability
 }
 
 const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
@@ -21,6 +22,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
   documentType,
   currentUrl,
   onDocumentUpdated,
+  readOnly = false, // Default to not read-only
 }) => {
   const { supabase, session } = useSupabase();
   const [uploading, setUploading] = useState(false);
@@ -28,8 +30,8 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
   const documentTitle = documentType.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (!session?.user.id || !event.target.files || event.target.files.length === 0) {
-      showError('No user session or file selected.');
+    if (readOnly || !session?.user.id || !event.target.files || event.target.files.length === 0) {
+      showError('No user session, file selected, or action is read-only.');
       return;
     }
 
@@ -75,8 +77,8 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
   };
 
   const handleDeleteDocument = async () => {
-    if (!currentUrl) {
-      showError(`No ${documentTitle} to delete.`);
+    if (readOnly || !currentUrl) {
+      showError(`No ${documentTitle} to delete or action is read-only.`);
       return;
     }
 
@@ -133,31 +135,43 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
           <p className="text-sm text-muted-foreground mb-4">No {documentTitle.toLowerCase()} uploaded yet.</p>
         )}
         <div className="flex flex-col gap-2">
-          <Label htmlFor={`${documentType}-upload`} className="w-full">
-            <Button asChild className="w-full" disabled={uploading}>
-              <span>
-                <Upload className="mr-2 h-4 w-4" />
-                {uploading ? 'Uploading...' : `Upload ${documentTitle}`}
-              </span>
-            </Button>
-          </Label>
-          <Input
-            id={`${documentType}-upload`}
-            type="file"
-            accept="*/*" // Allow all file types for now
-            onChange={handleFileUpload}
-            className="hidden"
-            disabled={uploading}
-          />
+          {!readOnly && (
+            <>
+              <Label htmlFor={`${documentType}-upload`} className="w-full">
+                <Button asChild className="w-full" disabled={uploading}>
+                  <span>
+                    <Upload className="mr-2 h-4 w-4" />
+                    {uploading ? 'Uploading...' : `Upload ${documentTitle}`}
+                  </span>
+                </Button>
+              </Label>
+              <Input
+                id={`${documentType}-upload`}
+                type="file"
+                accept="*/*" // Allow all file types for now
+                onChange={handleFileUpload}
+                className="hidden"
+                disabled={uploading}
+              />
+            </>
+          )}
           {currentUrl && (
             <Button
-              variant="destructive"
-              onClick={handleDeleteDocument}
+              variant={readOnly ? "outline" : "destructive"}
+              onClick={readOnly ? () => window.open(currentUrl, '_blank') : handleDeleteDocument}
               disabled={uploading}
               className="w-full"
             >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {uploading ? 'Deleting...' : `Delete ${documentTitle}`}
+              {readOnly ? (
+                <>
+                  <FileText className="mr-2 h-4 w-4" /> View {documentTitle}
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {uploading ? 'Deleting...' : `Delete ${documentTitle}`}
+                </>
+              )}
             </Button>
           )}
         </div>

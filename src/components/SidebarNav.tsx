@@ -3,7 +3,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, User, Shield, BarChart, CalendarDays, LogOut, Users } from 'lucide-react'; // Removed FileText
+import { Home, User, Shield, BarChart, CalendarDays, LogOut, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarNavProps {
@@ -23,12 +23,6 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
       roles: ['client', 'admin'],
     },
     {
-      to: "/profile",
-      icon: User,
-      label: "Profile",
-      roles: ['client', 'admin'],
-    },
-    {
       to: "/admin/analytics",
       icon: BarChart,
       label: "Analytics",
@@ -40,7 +34,12 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
       label: "Calendar",
       roles: ['admin'],
     },
-    // Removed the "Manage Documents" link
+    {
+      to: "/profile",
+      icon: User,
+      label: "Profile",
+      roles: ['client', 'admin'],
+    },
   ];
 
   return (

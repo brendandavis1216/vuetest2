@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { FileStack, ArrowLeft, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { useAdminEventNotifications } from '@/hooks/useAdminEventNotifications'; // Import the new hook
 
 interface Profile {
   id: string;
@@ -34,6 +35,7 @@ interface Event {
   invoice_url: string | null;
   equipment_list_url: string | null;
   other_documents_url: string | null;
+  signed_contract_url: string | null; // New field
 }
 
 const AdminDashboard = () => {
@@ -46,6 +48,9 @@ const AdminDashboard = () => {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [userEvents, setUserEvents] = useState<Event[]>([]);
   const [loadingUserEvents, setLoadingUserEvents] = useState(false);
+
+  // Activate the admin event notifications hook
+  useAdminEventNotifications();
 
   const checkAdminStatus = useCallback(async () => {
     setLoadingAdminStatus(true);
@@ -92,7 +97,7 @@ const AdminDashboard = () => {
     setLoadingUserEvents(true);
     const { data, error } = await supabase
       .from('events')
-      .select('*, renders_url, contract_url, invoice_url, equipment_list_url, other_documents_url') // Select document URLs
+      .select('*, renders_url, contract_url, invoice_url, equipment_list_url, other_documents_url, signed_contract_url') // Select document URLs including the new one
       .eq('user_id', userId)
       .order('event_date', { ascending: true });
 
@@ -133,6 +138,7 @@ const AdminDashboard = () => {
       event.invoice_url,
       event.equipment_list_url,
       event.other_documents_url,
+      event.signed_contract_url, // Include the new document
     ];
     const uploadedCount = documentFields.filter(url => url !== null).length;
     const totalCategories = documentFields.length;

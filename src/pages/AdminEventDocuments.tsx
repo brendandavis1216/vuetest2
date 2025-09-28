@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, FolderOpen } from 'lucide-react';
 import DocumentUploadCard from '@/components/DocumentUploadCard'; // Import the new component
+import { format } from 'date-fns';
 
 interface Event {
   id: string;
@@ -23,6 +24,7 @@ interface Event {
   invoice_url: string | null;
   equipment_list_url: string | null;
   other_documents_url: string | null;
+  signed_contract_url: string | null; // New field
 }
 
 const AdminEventDocuments = () => {
@@ -56,7 +58,7 @@ const AdminEventDocuments = () => {
     setLoadingEvents(true);
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('*, signed_contract_url') // Select the new field
       .order('created_at', { ascending: false });
 
     if (error) {
@@ -90,7 +92,7 @@ const AdminEventDocuments = () => {
     if (selectedEvent) {
       supabase
         .from('events')
-        .select('*')
+        .select('*, signed_contract_url') // Select the new field
         .eq('id', selectedEvent.id)
         .single()
         .then(({ data, error }) => {
@@ -173,6 +175,12 @@ const AdminEventDocuments = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <DocumentUploadCard
+              eventId={selectedEvent.id}
+              documentType="signed_contract"
+              currentUrl={selectedEvent.signed_contract_url}
+              onDocumentUpdated={handleEventDocumentUpdated}
+            />
             <DocumentUploadCard
               eventId={selectedEvent.id}
               documentType="renders"

@@ -25,6 +25,7 @@ interface Event {
   invoice_url: string | null;
   equipment_list_url: string | null;
   other_documents_url: string | null;
+  signed_contract_url: string | null; // New field
 }
 
 const EventDetails = () => {
@@ -63,7 +64,7 @@ const EventDetails = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('*, signed_contract_url') // Select the new field
       .eq('id', id)
       .single();
 
@@ -155,6 +156,14 @@ const EventDetails = () => {
 
       <h2 className="text-2xl font-bold mt-8 mb-4">Event Documents</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* DocumentUploadCard for Signed Contract - visible to both admin and client */}
+        <DocumentUploadCard
+          eventId={event.id}
+          documentType="signed_contract"
+          currentUrl={event.signed_contract_url}
+          onDocumentUpdated={fetchEventDetails}
+        />
+
         {isAdmin ? (
           <>
             <DocumentUploadCard

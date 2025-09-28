@@ -21,6 +21,7 @@ interface Event {
   budget: number;
   contact_phone: string;
   created_at: string;
+  signed_contract_url: string | null; // New field
 }
 
 const Dashboard = () => {
@@ -38,7 +39,7 @@ const Dashboard = () => {
     setLoadingEvents(true);
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('*, signed_contract_url') // Select the new field
       .eq('user_id', session.user.id)
       .order('event_date', { ascending: true });
 

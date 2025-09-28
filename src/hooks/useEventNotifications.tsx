@@ -13,6 +13,7 @@ interface EventUpdatePayload {
     invoice_url: string | null;
     equipment_list_url: string | null;
     other_documents_url: string | null;
+    signed_contract_url: string | null; // New field
     user_id: string;
     // ... other fields
   };
@@ -24,6 +25,7 @@ interface EventUpdatePayload {
     invoice_url: string | null;
     equipment_list_url: string | null;
     other_documents_url: string | null;
+    signed_contract_url: string | null; // New field
     user_id: string;
     // ... other fields
   };
@@ -35,6 +37,7 @@ const documentTypesMap: { [key: string]: string } = {
   invoice_url: 'Invoice',
   equipment_list_url: 'Equipment List',
   other_documents_url: 'Other Documents',
+  signed_contract_url: 'Signed Contract', // New document type
 };
 
 export const useEventNotifications = () => {
@@ -54,8 +57,13 @@ export const useEventNotifications = () => {
     for (const key in documentTypesMap) {
       if (old[key as keyof EventUpdatePayload['old']] !== updatedEvent[key as keyof EventUpdatePayload['new']] && updatedEvent[key as keyof EventUpdatePayload['new']]) {
         // A document URL has changed and is now present (i.e., uploaded or updated)
-        notificationMessage = `An admin has uploaded a new ${documentTypesMap[key]} for "${eventName}"!`;
-        break; // Only show one notification per update, for the first detected change
+        // We only want to notify the client if an admin uploaded something *for them*.
+        // If the client uploads their own signed contract, they don't need a notification.
+        // This hook is specifically for admin-to-client notifications.
+        if (key !== 'signed_contract_url') { // Exclude self-uploaded signed contract from client notifications
+          notificationMessage = `An admin has uploaded a new ${documentTypesMap[key]} for "${eventName}"!`;
+          break; // Only show one notification per update, for the first detected change
+        }
       }
     }
 

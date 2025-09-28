@@ -74,8 +74,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
               >
-                {/* Explicitly wrap children in a fragment */}
-                <>
+                <> {/* Explicitly wrap children in a fragment */}
                   <Icon className="mr-2 h-4 w-4" />
                   {item.label}
                 </>
@@ -93,7 +92,9 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
         variant="ghost"
         className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mt-4"
       >
-        <LogOut className="mr-2 h-4 w-4" /> Sign Out
+        <span> {/* Wrap icon and text in a span */}
+          <LogOut className="mr-2 h-4 w-4" /> Sign Out
+        </span>
       </Button>
     </nav>
   );

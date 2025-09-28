@@ -60,7 +60,7 @@ const Dashboard = () => {
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-50">Dashboard</h1>
+        <h1 className="text-4xl font-bold text-foreground">Dashboard</h1>
         <CreateEventDialog onEventCreated={fetchEvents} />
       </div>
       <div className="grid grid-cols-1 gap-6">

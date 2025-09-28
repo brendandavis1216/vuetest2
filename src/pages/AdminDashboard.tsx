@@ -256,7 +256,7 @@ const AdminDashboard = () => {
                     <TableCell>{profile.email}</TableCell>
                     <TableCell className="text-center">
                       <Select
-                        value={profile.chapter_id || 'unassign-chapter'} {/* Set default value for unassigned */}
+                        value={profile.chapter_id || 'unassign-chapter'}
                         onValueChange={(value) => handleChapterAssignment(profile.id, value === 'unassign-chapter' ? null : value)}
                         disabled={loadingChapters}
                       >
@@ -264,7 +264,7 @@ const AdminDashboard = () => {
                           <SelectValue placeholder="Assign Chapter" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="unassign-chapter">Unassign Chapter</SelectItem> {/* Changed value */}
+                          <SelectItem value="unassign-chapter">Unassign Chapter</SelectItem>
                           {chapters.map((chapter) => (
                             <SelectItem key={chapter.id} value={chapter.id}>
                               {chapter.name}

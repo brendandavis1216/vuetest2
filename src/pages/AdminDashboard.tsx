@@ -29,6 +29,11 @@ interface Event {
   contact_phone: string;
   created_at: string;
   user_id: string;
+  renders_url: string | null;
+  contract_url: string | null;
+  invoice_url: string | null;
+  equipment_list_url: string | null;
+  other_documents_url: string | null;
 }
 
 const AdminDashboard = () => {
@@ -85,7 +90,7 @@ const AdminDashboard = () => {
     setLoadingUserEvents(true);
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select('*, renders_url, contract_url, invoice_url, equipment_list_url, other_documents_url') // Select document URLs
       .eq('user_id', userId)
       .order('event_date', { ascending: true });
 
@@ -117,6 +122,19 @@ const AdminDashboard = () => {
   const handleViewUserEvents = (user: Profile) => {
     setSelectedUser(user);
     fetchUserEvents(user.id);
+  };
+
+  const calculateCompletionPercentage = (event: Event) => {
+    const documentFields = [
+      event.renders_url,
+      event.contract_url,
+      event.invoice_url,
+      event.equipment_list_url,
+      event.other_documents_url,
+    ];
+    const uploadedCount = documentFields.filter(url => url !== null).length;
+    const totalCategories = documentFields.length;
+    return totalCategories > 0 ? Math.round((uploadedCount / totalCategories) * 100) : 0;
   };
 
   if (loadingAdminStatus) {
@@ -216,6 +234,7 @@ const AdminDashboard = () => {
                       <TableHead>Artist Name</TableHead>
                       <TableHead>Budget</TableHead>
                       <TableHead>Contact Phone</TableHead>
+                      <TableHead>Completion</TableHead> {/* New Table Head */}
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -227,6 +246,7 @@ const AdminDashboard = () => {
                         <TableCell>{event.artist_name || 'N/A'}</TableCell>
                         <TableCell>${event.budget.toLocaleString()}</TableCell>
                         <TableCell>{event.contact_phone}</TableCell>
+                        <TableCell>{calculateCompletionPercentage(event)}%</TableCell> {/* Display Completion */}
                         <TableCell className="text-right">
                           <Link to={`/events/${event.id}`}>
                             <Button variant="outline" size="sm" className="h-8 w-8 p-0">

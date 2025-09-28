@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, CalendarDays, FileText, CheckCircle, AlertCircle, XCircle } from 'lucide-react';
 import { showError } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format, isSameDay } from 'date-fns';
+import { format, isSameDay, isWithinInterval, startOfMonth, endOfMonth } from 'date-fns';
 import { DayPicker, DateFormatter } from 'react-day-picker';
 import 'react-day-picker/dist/style.css'; // Import the default styles
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -67,8 +67,10 @@ const AdminCalendar = () => {
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [eventsByDate, setEventsByDate] = useState<Map<string, Event[]>>(new Map());
   const [dayColors, setDayColors] = useState<Map<string, EventStatus>>(new Map());
-  const [selectedDayEvents, setSelectedDayEvents] = useState<Event[]>([]);
-  const [selectedDay, setSelectedDay] = useState<Date | undefined>(undefined);
+  
+  // State to manage the currently displayed month in the calendar
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
+  const [displayedMonthEvents, setDisplayedMonthEvents] = useState<Event[]>([]);
 
   const checkAdminStatus = useCallback(async () => {
     setLoadingAdminStatus(true);
@@ -146,17 +148,16 @@ const AdminCalendar = () => {
 
     setEventsByDate(newEventsByDate);
     setDayColors(newDayColors);
-  }, [events]);
 
-  const handleDayClick = (day: Date | undefined) => {
-    setSelectedDay(day);
-    if (day) {
-      const dateKey = format(day, 'yyyy-MM-dd');
-      setSelectedDayEvents(eventsByDate.get(dateKey) || []);
-    } else {
-      setSelectedDayEvents([]);
-    }
-  };
+    // Filter events for the currently displayed month
+    const start = startOfMonth(currentMonth);
+    const end = endOfMonth(currentMonth);
+    const filtered = events.filter(event => 
+      isWithinInterval(new Date(event.event_date), { start, end })
+    );
+    setDisplayedMonthEvents(filtered);
+
+  }, [events, currentMonth]); // Re-run when events or currentMonth changes
 
   const modifiers = {
     eventRed: (date: Date) => {
@@ -213,8 +214,8 @@ const AdminCalendar = () => {
           <div className="flex-1">
             <DayPicker
               mode="single"
-              selected={selectedDay}
-              onSelect={handleDayClick}
+              month={currentMonth} // Control the displayed month
+              onMonthChange={setCurrentMonth} // Update currentMonth when navigating
               modifiers={modifiers}
               modifierStyles={modifierStyles}
               formatters={{ formatCaption }}
@@ -244,11 +245,13 @@ const AdminCalendar = () => {
 
           <div className="flex-1 border-t md:border-t-0 md:border-l pt-6 md:pt-0 md:pl-6 border-border">
             <h3 className="text-xl font-semibold mb-4">
-              {selectedDay ? `Events on ${format(selectedDay, 'PPP')}` : 'Select a date to view events'}
+              Events for {format(currentMonth, 'MMMM yyyy')}
             </h3>
-            {selectedDayEvents.length > 0 ? (
+            {displayedMonthEvents.length > 0 ? (
               <div className="space-y-4">
-                {selectedDayEvents.map(event => (
+                {displayedMonthEvents
+                  .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime())
+                  .map(event => (
                   <Card key={event.id} className="p-4">
                     <CardTitle className="text-lg mb-2">
                       <Link to={`/events/${event.id}`} className="hover:underline">
@@ -256,6 +259,7 @@ const AdminCalendar = () => {
                       </Link>
                     </CardTitle>
                     <CardDescription className="text-sm">
+                      Date: {format(new Date(event.event_date), 'PPP')} <br />
                       Artist: {event.artist_name || 'N/A'} <br />
                       Budget: ${event.budget.toLocaleString()} <br />
                       Status: {getEventStatus(event) === 'green' ? 'Completed' : getEventStatus(event) === 'yellow' ? 'In Progress' : 'Not Started'}
@@ -264,7 +268,7 @@ const AdminCalendar = () => {
                 ))}
               </div>
             ) : (
-              selectedDay && <p className="text-muted-foreground">No events scheduled for this date.</p>
+              <p className="text-muted-foreground">No events scheduled for this month.</p>
             )}
           </div>
         </CardContent>

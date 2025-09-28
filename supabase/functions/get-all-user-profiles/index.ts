@@ -40,10 +40,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Fetch all profiles
+    // Fetch all profiles, using the new 'school' and 'fraternity' column names
     const { data: profiles, error: profilesError } = await supabaseServiceRoleClient
       .from('profiles')
-      .select('id, first_name, last_name, avatar_url, role');
+      .select('id, school, fraternity, avatar_url, role');
 
     if (profilesError) {
       console.error('Error fetching profiles with service role:', profilesError.message);

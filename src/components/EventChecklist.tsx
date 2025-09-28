@@ -46,7 +46,7 @@ const EventChecklist: React.FC<EventChecklistProps> = ({ event }) => {
               disabled
               className="data-[state=checked]:bg-green-500 data-[state=checked]:text-white" // Green background, white checkmark
             />
-            <Label htmlFor={`checklist-item-${index}`} className="text-base font-medium text-white"> {/* White text */}
+            <Label htmlFor={`checklist-item-${index}`} className="text-base font-medium !text-white"> {/* White text */}
               {item.label}
             </Label>
           </div>

@@ -11,8 +11,6 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminEventDocuments from "./pages/AdminEventDocuments";
 import AdminAnalytics from "./pages/AdminAnalytics";
-import AdminCalendar from "./pages/AdminCalendar";
-import AdminChapterProfile from "./pages/AdminChapterProfile"; // Import the new AdminChapterProfile page
 import EventDetails from "./pages/EventDetails";
 import MainLayout from "./components/MainLayout";
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
@@ -61,7 +59,7 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         if (currentPath === '/login' || currentPath === '/') {
           navigate('/dashboard', { replace: true });
         }
-        if (currentPath.startsWith('/admin') && !currentPath.startsWith('/admin/event-documents') && !currentPath.startsWith('/admin/analytics') && !currentPath.startsWith('/admin/calendar') && !currentPath.startsWith('/admin/chapters')) { // Added /admin/chapters
+        if (currentPath.startsWith('/admin') && !currentPath.startsWith('/admin/event-documents') && !currentPath.startsWith('/admin/analytics')) {
           navigate('/dashboard', { replace: true });
         }
       }
@@ -101,8 +99,6 @@ const App = () => (
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/event-documents" element={<AdminEventDocuments />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                <Route path="/admin/calendar" element={<AdminCalendar />} />
-                <Route path="/admin/chapters/:chapterId" element={<AdminChapterProfile />} /> {/* New Admin Chapter Profile Route */}
                 <Route path="/events/:id" element={<EventDetails />} />
               </Route>
 

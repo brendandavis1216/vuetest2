@@ -186,12 +186,14 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ event, onEventUpdated
                             !field.value && 'text-muted-foreground'
                           )}
                         >
-                          {field.value ? (
-                            format(field.value, 'PPP')
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          <> {/* Explicitly wrap children in a fragment */}
+                            {field.value ? (
+                              format(field.value, 'PPP')
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </>
                         </Button>
                       </FormControl>
                     </PopoverTrigger>

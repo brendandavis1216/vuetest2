@@ -29,7 +29,7 @@ const LoginPage = () => {
             },
           }}
           theme="light"
-          redirectTo={window.location.origin + '/profile'} // Redirect to profile after successful auth
+          // Removed redirectTo prop to allow AuthWrapper to handle navigation
           extraFields={[
             {
               name: 'school',

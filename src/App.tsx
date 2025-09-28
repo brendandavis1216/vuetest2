@@ -51,17 +51,25 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const currentPath = location.pathname;
 
     if (session) {
-      // If authenticated, redirect away from login/index pages
-      if (currentPath === '/login' || currentPath === '/') {
-        if (isAdmin) {
+      // If authenticated
+      if (isAdmin) {
+        // Admins should go to /admin, redirect if they are on /login, /, or /dashboard
+        if (currentPath === '/login' || currentPath === '/' || currentPath === '/dashboard') {
           navigate('/admin', { replace: true });
-        } else {
+        }
+      } else {
+        // Non-admins should go to /dashboard, redirect if they are on /login or /
+        if (currentPath === '/login' || currentPath === '/') {
+          navigate('/dashboard', { replace: true });
+        }
+        // If a non-admin somehow lands on /admin or /admin/event-documents, redirect them to /dashboard
+        if (currentPath.startsWith('/admin')) {
           navigate('/dashboard', { replace: true });
         }
       }
     } else {
       // If unauthenticated, redirect to login page (unless already there)
-      if (currentPath !== '/login') {
+      if (currentPath !== '/login' && currentPath !== '/') { // Also allow '/' as a public landing
         navigate('/login', { replace: true });
       }
     }

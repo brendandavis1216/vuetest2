@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { showSuccess, showError } from '@/utils/toast';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 
 interface Profile {
   id: string;
@@ -23,6 +25,7 @@ const AdminDashboard = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null); // Stores userId being updated
 
   const checkAdminStatus = useCallback(async () => {
     if (!session) {
@@ -73,6 +76,34 @@ const AdminDashboard = () => {
     }
   }, [isAdmin, loading, navigate, fetchAllProfiles]);
 
+  const handleRoleChange = async (userId: string, newRole: string) => {
+    setIsUpdatingRole(userId);
+    try {
+      const { data, error } = await supabase.functions.invoke('update-user-role', {
+        body: { userId, newRole },
+      });
+
+      if (error) {
+        console.error('Error invoking update-user-role function:', error.message);
+        showError(`Failed to update role: ${error.message}`);
+      } else if (data && data.error) {
+        console.error('Error from update-user-role function:', data.error);
+        showError(`Failed to update role: ${data.error}`);
+      } else {
+        showSuccess('User role updated successfully!');
+        // Optimistically update UI or re-fetch profiles
+        setProfiles(prevProfiles =>
+          prevProfiles.map(p => (p.id === userId ? { ...p, role: newRole } : p))
+        );
+      }
+    } catch (error: any) {
+      console.error('Unexpected error calling edge function:', error.message);
+      showError(`An unexpected error occurred: ${error.message}`);
+    } finally {
+      setIsUpdatingRole(null);
+    }
+  };
+
   if (loading || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -104,6 +135,7 @@ const AdminDashboard = () => {
                   <TableHead>Last Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -113,7 +145,26 @@ const AdminDashboard = () => {
                     <TableCell>{profile.first_name || 'N/A'}</TableCell>
                     <TableCell>{profile.last_name || 'N/A'}</TableCell>
                     <TableCell>{profile.email}</TableCell>
-                    <TableCell>{profile.role}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={profile.role}
+                        onValueChange={(newRole) => handleRoleChange(profile.id, newRole)}
+                        disabled={isUpdatingRole === profile.id}
+                      >
+                        <SelectTrigger className="w-[120px]">
+                          <SelectValue placeholder="Select Role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="client">Client</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      {isUpdatingRole === profile.id && (
+                        <span className="text-sm text-gray-500">Updating...</span>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

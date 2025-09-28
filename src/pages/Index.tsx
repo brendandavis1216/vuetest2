@@ -1,23 +1,11 @@
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { useSupabase } from "@/integrations/supabase/SessionContextProvider"; // Import useSupabase
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 
 const Index = () => {
-  const { session } = useSupabase();
-  const navigate = useNavigate();
-
-  // Redirect to profile if logged in and on the index page
-  useEffect(() => {
-    if (session) {
-      navigate('/profile');
-    }
-  }, [session, navigate]);
-
-  // This page should ideally not be reached by authenticated users anymore
-  // but if it is, it will redirect them.
+  // The AuthWrapper now handles redirection for authenticated users.
+  // This page will only be shown to unauthenticated users who land on '/'
+  // before being redirected to '/login' by AuthWrapper.
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
       <div className="text-center mb-8">

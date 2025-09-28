@@ -1,20 +1,12 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Auth } from '@supabase/auth-ui-react';
 import { ThemeSupa } from '@supabase/auth-ui-shared';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
-import { useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
-  const { supabase, session } = useSupabase();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (session) {
-      navigate('/profile'); // Redirect to profile if already logged in
-    }
-  }, [session, navigate]);
+  const { supabase } = useSupabase();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

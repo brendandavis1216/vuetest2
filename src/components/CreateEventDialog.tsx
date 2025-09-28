@@ -29,23 +29,33 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { showError, showSuccess } from '@/utils/toast';
+import { Switch } from '@/components/ui/switch'; // Import Switch component
+import { Label } from '@/components/ui/label'; // Import Label component
 
 const formSchema = z.object({
   event_date: z.date({
     required_error: 'Event date is required.',
   }),
-  artist_name: z.string().min(2, {
-    message: 'Artist name must be at least 2 characters.',
-  }),
+  hiring_artist: z.boolean().default(false), // New field for hiring artist
+  artist_name: z.string().optional(), // Now optional, conditionally validated
   budget: z.preprocess(
     (val) => Number(val),
     z.number().min(0, {
-      message: 'Budget must be a positive number.',
+      message: 'Production budget must be a positive number.',
     })
   ),
   contact_phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, {
     message: 'Invalid phone number format.',
   }),
+}).superRefine((data, ctx) => {
+  // Conditional validation for artist_name
+  if (data.hiring_artist && (!data.artist_name || data.artist_name.trim() === '')) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Artist name is required if you are hiring an artist.',
+      path: ['artist_name'],
+    });
+  }
 });
 
 interface CreateEventDialogProps {
@@ -62,6 +72,7 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onEventCreated })
       artist_name: '',
       budget: 0,
       contact_phone: '',
+      hiring_artist: false, // Default to not hiring an artist
     },
   });
 
@@ -71,12 +82,15 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onEventCreated })
       return;
     }
 
-    const { event_date, artist_name, budget, contact_phone } = values;
+    const { event_date, hiring_artist, artist_name, budget, contact_phone } = values;
+
+    // Set artist_name to null if not hiring an artist
+    const finalArtistName = hiring_artist ? artist_name : null;
 
     const { error } = await supabase.from('events').insert({
       user_id: session.user.id,
       event_date: format(event_date, 'yyyy-MM-dd'),
-      artist_name,
+      artist_name: finalArtistName,
       budget,
       contact_phone,
     });
@@ -91,6 +105,9 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onEventCreated })
       onEventCreated(); // Notify parent component to refresh events
     }
   };
+
+  // Watch the hiring_artist field to conditionally render the artist name input
+  const isHiringArtist = form.watch('hiring_artist');
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -147,25 +164,61 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onEventCreated })
             />
             <FormField
               control={form.control}
-              name="artist_name"
+              name="hiring_artist"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Artist Name</FormLabel>
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                  <div className="space-y-0.5">
+                    <FormLabel>Are you hiring an artist?</FormLabel>
+                    <FormDescription>
+                      Toggle this if you plan to hire an artist for your event.
+                    </FormDescription>
+                  </div>
                   <FormControl>
-                    <Input placeholder="e.g., John Doe" {...field} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
               )}
             />
+            {isHiringArtist && (
+              <FormField
+                control={form.control}
+                name="artist_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Artist Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="budget"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Budget</FormLabel>
+                  <FormLabel>Production Budget</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="e.g., 5000" {...field} />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
+                      <Input
+                        type="number"
+                        placeholder="e.g., 5000"
+                        {...field}
+                        className="pl-7" // Add padding to make space for the dollar sign
+                        onChange={(e) => {
+                          // Ensure the value is a number or empty string for the input
+                          const value = e.target.value;
+                          field.onChange(value === '' ? '' : Number(value));
+                        }}
+                        value={field.value === 0 ? '' : field.value} // Display empty string for 0
+                      />
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

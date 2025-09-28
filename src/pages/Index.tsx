@@ -1,20 +1,8 @@
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import { useSession } from "@/components/SessionContextProvider";
-import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { showSuccess, showError } from "@/utils/toast";
+import DashboardLayout from "@/components/DashboardLayout"; // Import the new layout component
 
 const Index = () => {
   const { user, loading } = useSession();
-
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      showError(error.message);
-    } else {
-      showSuccess("Logged out successfully!");
-    }
-  };
 
   if (loading) {
     return (
@@ -25,18 +13,17 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-black text-white p-4">
-      <div className="text-center">
+    <DashboardLayout>
+      <div className="flex flex-col items-center justify-center h-full p-4">
         <h1 className="text-4xl font-bold mb-4">Welcome, {user?.email}!</h1>
         <p className="text-xl text-gray-400 mb-6">
           This is your VUE Production Dashboard.
         </p>
-        <Button onClick={handleLogout} variant="secondary" className="bg-gray-800 hover:bg-gray-700 text-white">
-          Logout
-        </Button>
+        <p className="text-lg text-gray-500">
+          Use the sidebar to navigate.
+        </p>
       </div>
-      <MadeWithDyad />
-    </div>
+    </DashboardLayout>
   );
 };
 

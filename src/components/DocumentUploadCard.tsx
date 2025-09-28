@@ -141,45 +141,50 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
 
   const handleDownload = async () => {
     if (!currentUrl) {
-      showError(`No ${documentTitle} available to download.`);
+      showError(`No ${documentTitle} available.`);
       return;
     }
 
     setDownloading(true);
     try {
-      // Extract the path within the bucket from the public URL
-      // Example: https://[project_id].supabase.co/storage/v1/object/public/event-documents/eventId/filename.ext
-      // We need: eventId/filename.ext
       const urlParts = currentUrl.split('/public/event-documents/');
       if (urlParts.length < 2) {
-        throw new Error('Invalid document URL format for download.');
+        throw new Error('Invalid document URL format.');
       }
       const filePathInBucket = urlParts[1];
+      const fileExtension = filePathInBucket.split('.').pop()?.toLowerCase();
 
-      const { data, error } = await supabase.storage
-        .from('event-documents')
-        .download(filePathInBucket);
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      if (data) {
-        const url = window.URL.createObjectURL(data);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filePathInBucket.split('/').pop() || `${documentType}-document`; // Use original filename or a default
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-        showSuccess(`${documentTitle} downloaded successfully!`);
+      if (fileExtension === 'pdf') {
+        // Open PDF in a new tab
+        window.open(currentUrl, '_blank');
+        showSuccess(`${documentTitle} opened in a new tab!`);
       } else {
-        throw new Error('No data received for download.');
+        // For other file types, proceed with download
+        const { data, error } = await supabase.storage
+          .from('event-documents')
+          .download(filePathInBucket);
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        if (data) {
+          const url = window.URL.createObjectURL(data);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filePathInBucket.split('/').pop() || `${documentType}-document`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          window.URL.revokeObjectURL(url);
+          showSuccess(`${documentTitle} downloaded successfully!`);
+        } else {
+          throw new Error('No data received for download.');
+        }
       }
     } catch (error: any) {
-      console.error(`[${documentTitle} Download] Error downloading document:`, error);
-      showError(`Failed to download ${documentTitle}: ${error.message}`);
+      console.error(`[${documentTitle} Action] Error:`, error);
+      showError(`Failed to perform action on ${documentTitle}: ${error.message}`);
     } finally {
       setDownloading(false);
     }
@@ -232,7 +237,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
               disabled={uploading || downloading}
               className="w-full"
             >
-              <Download className="mr-2 h-4 w-4" /> {downloading ? 'Downloading...' : `Download ${documentTitle}`}
+              <Download className="mr-2 h-4 w-4" /> {downloading ? 'Processing...' : `View/Download ${documentTitle}`}
             </Button>
           )}
           {currentUrl && !readOnly && documentType !== 'signed_contract' && (

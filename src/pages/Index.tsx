@@ -1,15 +1,15 @@
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Building } from "lucide-react"; // Import a placeholder icon
 
 const Index = () => {
-  // The AuthWrapper now handles redirection for authenticated users.
-  // This page will only be shown to unauthenticated users who land on '/'
-  // before being redirected to '/login' by AuthWrapper.
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-4 text-foreground">Welcome to Your App</h1>
+        {/* Placeholder for your company logo */}
+        <Building className="mx-auto h-24 w-24 text-primary mb-4" /> 
+        <h1 className="text-4xl font-bold mb-4 text-foreground">Your Company Name</h1> {/* You can change this text */}
         <p className="text-xl text-foreground mb-6">
           Please log in to continue.
         </p>

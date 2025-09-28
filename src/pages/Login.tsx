@@ -39,7 +39,8 @@ const LoginPage = () => {
               },
             },
           }}
-          theme="dark" {/* Set theme to dark to ensure proper base styling */}
+          theme="dark"
+          {/* Set theme to dark to ensure proper base styling */}
           // Removed redirectTo prop to allow AuthWrapper to handle navigation
           extraFields={[
             {

@@ -40,6 +40,9 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
     const fileExt = file.name.split('.').pop();
     const filePath = `${eventId}/${documentType}-${Date.now()}.${fileExt}`; // Unique path per event/document type
 
+    console.log(`[${documentTitle} Upload] Attempting to upload file: ${file.name}`);
+    console.log(`[${documentTitle} Upload] Target filePath in storage: ${filePath}`);
+
     const { error: uploadError } = await supabase.storage
       .from('event-documents')
       .upload(filePath, file, {
@@ -48,30 +51,35 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
       });
 
     if (uploadError) {
-      console.error(`Error uploading ${documentType}:`, uploadError.message);
+      console.error(`[${documentTitle} Upload] Error uploading ${documentType}:`, uploadError.message);
       showError(`Failed to upload ${documentTitle}: ${uploadError.message}`);
       setUploading(false);
       return;
     }
 
+    console.log(`[${documentTitle} Upload] File uploaded successfully. Getting public URL.`);
     // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from('event-documents')
       .getPublicUrl(filePath);
 
+    console.log(`[${documentTitle} Upload] Generated public URL: ${publicUrlData.publicUrl}`);
+
     // Update the event record with the new URL
     const updateColumn = `${documentType}_url`;
+    console.log(`[${documentTitle} Upload] Updating event ${eventId} with column ${updateColumn} to URL: ${publicUrlData.publicUrl}`);
     const { error: updateError } = await supabase
       .from('events')
       .update({ [updateColumn]: publicUrlData.publicUrl, updated_at: new Date().toISOString() })
       .eq('id', eventId);
 
     if (updateError) {
-      console.error(`Error updating event with ${documentType} URL:`, updateError.message);
+      console.error(`[${documentTitle} Upload] Error updating event with ${documentType} URL:`, updateError.message);
       showError(`Failed to update event with ${documentTitle} URL: ${updateError.message}`);
     } else {
       showSuccess(`${documentTitle} uploaded and linked successfully!`);
       onDocumentUpdated(); // Trigger a refresh of the parent component
+      console.log(`[${documentTitle} Upload] Event record updated successfully.`);
     }
     setUploading(false);
   };
@@ -87,12 +95,14 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
     const fileName = urlParts[urlParts.length - 1];
     const filePath = `${eventId}/${fileName}`; // Reconstruct path for deletion
 
+    console.log(`[${documentTitle} Delete] Attempting to delete file from storage path: ${filePath}`);
+
     const { error: deleteError } = await supabase.storage
       .from('event-documents')
       .remove([filePath]);
 
     if (deleteError) {
-      console.error(`Error deleting ${documentType}:`, deleteError.message);
+      console.error(`[${documentTitle} Delete] Error deleting ${documentType}:`, deleteError.message);
       showError(`Failed to delete ${documentTitle}: ${deleteError.message}`);
       setUploading(false);
       return;
@@ -100,17 +110,19 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
 
     // Clear the URL in the event record
     const updateColumn = `${documentType}_url`;
+    console.log(`[${documentTitle} Delete] Clearing event ${eventId} column ${updateColumn}.`);
     const { error: updateError } = await supabase
       .from('events')
       .update({ [updateColumn]: null, updated_at: new Date().toISOString() })
       .eq('id', eventId);
 
     if (updateError) {
-      console.error(`Error clearing ${documentType} URL in event:`, updateError.message);
+      console.error(`[${documentTitle} Delete] Error clearing ${documentType} URL in event:`, updateError.message);
       showError(`Failed to clear ${documentTitle} URL: ${updateError.message}`);
     } else {
       showSuccess(`${documentTitle} deleted successfully!`);
       onDocumentUpdated();
+      console.log(`[${documentTitle} Delete] Document URL cleared successfully.`);
     }
     setUploading(false);
   };

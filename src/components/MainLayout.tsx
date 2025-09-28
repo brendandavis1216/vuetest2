@@ -6,11 +6,15 @@ import { Button } from '@/components/ui/button';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { showSuccess, showError } from '@/utils/toast';
 import { Home, User, Shield } from 'lucide-react'; // Added Shield icon
+import { useEventNotifications } from '@/hooks/useEventNotifications'; // Import the new hook
 
 const MainLayout: React.FC = () => {
   const { supabase, session } = useSupabase();
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+
+  // Activate the event notifications hook
+  useEventNotifications();
 
   useEffect(() => {
     const checkAdmin = async () => {

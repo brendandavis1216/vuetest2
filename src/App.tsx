@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
+import ProfilePage from "./pages/Profile"; // Import the new ProfilePage
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
 import React, { useEffect } from "react";
 
@@ -43,6 +44,7 @@ const App = () => (
           <AuthWrapper>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/profile" element={<ProfilePage />} /> {/* Add the profile route */}
               <Route path="/" element={<Index />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

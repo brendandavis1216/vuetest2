@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import DocumentUploadCard from '@/components/DocumentUploadCard'; // Import the DocumentUploadCard
+import EventChecklist from '@/components/EventChecklist'; // Import the new EventChecklist component
 
 interface Event {
   id: string;
@@ -116,6 +117,9 @@ const EventDetails = () => {
         </Button>
         <h1 className="text-4xl font-bold text-foreground text-center sm:text-left">Event: {event.event_name || 'Untitled Event'}</h1>
       </div>
+
+      {/* Event Checklist at the top */}
+      <EventChecklist event={event} />
 
       <Card className="shadow-lg">
         <CardHeader>

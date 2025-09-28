@@ -62,9 +62,15 @@ const ProfilePage = () => {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!session?.user.id) return;
+    if (!session?.user.id) {
+      console.warn('No user session found, cannot update profile.');
+      return;
+    }
 
     setLoading(true);
+    console.log('Attempting to update profile for user:', session.user.id);
+    console.log('Sending data:', { first_name: firstName, last_name: lastName });
+
     const { error } = await supabase
       .from('profiles')
       .update({ first_name: firstName, last_name: lastName, updated_at: new Date().toISOString() })
@@ -72,16 +78,18 @@ const ProfilePage = () => {
 
     if (error) {
       console.error('Error updating profile:', error.message);
-      showError('Failed to update profile.');
+      showError(`Failed to update profile: ${error.message}`); // Show more specific error
     } else {
       setProfile(prev => prev ? { ...prev, first_name: firstName, last_name: lastName } : null);
       showSuccess('Profile updated successfully!');
+      console.log('Profile updated successfully!');
     }
     setLoading(false);
   };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!session?.user.id || !event.target.files || event.target.files.length === 0) {
+      console.warn('No user session or file selected for avatar upload.');
       return;
     }
 
@@ -90,6 +98,8 @@ const ProfilePage = () => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${session.user.id}-${Math.random()}.${fileExt}`;
     const filePath = `${fileName}`;
+
+    console.log('Attempting to upload avatar to path:', filePath);
 
     const { error: uploadError } = await supabase.storage
       .from('avatars')
@@ -100,33 +110,37 @@ const ProfilePage = () => {
 
     if (uploadError) {
       console.error('Error uploading avatar:', uploadError.message);
-      showError('Failed to upload avatar.');
+      showError(`Failed to upload avatar: ${uploadError.message}`);
       setUploading(false);
       return;
     }
 
+    console.log('Avatar uploaded successfully, updating profile avatar_url...');
     const { error: updateError } = await supabase
       .from('profiles')
       .update({ avatar_url: filePath, updated_at: new Date().toISOString() })
       .eq('id', session.user.id);
 
     if (updateError) {
-      console.error('Error updating avatar URL:', updateError.message);
-      showError('Failed to update avatar URL.');
+      console.error('Error updating avatar URL in profile:', updateError.message);
+      showError(`Failed to update avatar URL: ${updateError.message}`);
     } else {
       showSuccess('Avatar uploaded successfully!');
       getProfile(); // Re-fetch profile to get the new avatar URL
+      console.log('Profile avatar_url updated successfully!');
     }
     setUploading(false);
   };
 
   const handleSignOut = async () => {
+    console.log('Attempting to sign out...');
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error.message);
       showError('Failed to sign out.');
     } else {
       showSuccess('Signed out successfully!');
+      console.log('Signed out successfully!');
     }
   };
 

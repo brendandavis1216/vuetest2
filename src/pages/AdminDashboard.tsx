@@ -8,10 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { showSuccess, showError } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { FileStack, ArrowLeft, Eye } from 'lucide-react';
+import { FileStack, ArrowLeft, Eye, Search } from 'lucide-react'; // Added Search icon
 import { format } from 'date-fns';
 import { useAdminEventNotifications } from '@/hooks/useAdminEventNotifications';
 import EditEventDialog from '@/components/EditEventDialog';
+import { Input } from '@/components/ui/input'; // Import Input component
 
 interface Profile {
   id: string;
@@ -47,6 +48,8 @@ const AdminDashboard = () => {
   const { supabase, session } = useSupabase();
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [filteredProfiles, setFilteredProfiles] = useState<Profile[]>([]); // New state for filtered profiles
+  const [searchQuery, setSearchQuery] = useState(''); // New state for search query
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -83,10 +86,12 @@ const AdminDashboard = () => {
         console.error('Error invoking get-all-user-profiles function:', error.message);
         showError(`Failed to load all user profiles: ${error.message}`);
         setProfiles([]);
+        setFilteredProfiles([]);
       } else if (data) {
-        const filteredProfiles = (data as Profile[]).filter(profile => profile.role !== 'admin');
-        setProfiles(filteredProfiles);
-        console.log('Fetched profiles with analytics:', filteredProfiles); // Debug log
+        const filtered = (data as Profile[]).filter(profile => profile.role !== 'admin');
+        setProfiles(filtered);
+        setFilteredProfiles(filtered); // Initialize filtered profiles with all profiles
+        console.log('Fetched profiles with analytics:', filtered); // Debug log
         showSuccess('All profiles loaded successfully!');
       }
     } catch (error: any) {
@@ -130,10 +135,16 @@ const AdminDashboard = () => {
     }
   }, [isAdmin, loadingAdminStatus, navigate, fetchAllProfiles]);
 
-  const handleViewUserEvents = (user: Profile) => {
-    setSelectedUser(user);
-    fetchUserEvents(user.id);
-  };
+  // Effect to filter profiles based on search query
+  useEffect(() => {
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    const results = profiles.filter(profile =>
+      profile.school?.toLowerCase().includes(lowerCaseQuery) ||
+      profile.fraternity?.toLowerCase().includes(lowerCaseQuery) ||
+      profile.email.toLowerCase().includes(lowerCaseQuery)
+    );
+    setFilteredProfiles(results);
+  }, [searchQuery, profiles]);
 
   const calculateCompletionPercentage = (event: Event) => {
     const documentFields = [
@@ -183,30 +194,53 @@ const AdminDashboard = () => {
             <CardDescription>View user roles and their associated events.</CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search clients by school, fraternity, or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>School</TableHead>
                   <TableHead>Fraternity</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead className="text-right">Actions</TableHead> {/* Changed column header */}
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {profiles.map((profile) => (
-                  <TableRow key={profile.id}>
-                    <TableCell>{profile.school || 'N/A'}</TableCell>
-                    <TableCell>{profile.fraternity || 'N/A'}</TableCell>
-                    <TableCell>{profile.email}</TableCell>
-                    <TableCell className="text-right">
-                      <Link to={`/admin/clients/${profile.id}`}> {/* Link to new client profile page */}
-                        <Button variant="outline" size="sm">
-                          <Eye className="mr-2 h-4 w-4" /> View Client Profile
-                        </Button>
-                      </Link>
+                {filteredProfiles.length === 0 && searchQuery !== '' ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                      No clients found matching your search.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : filteredProfiles.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-4">
+                      No client profiles available.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredProfiles.map((profile) => (
+                    <TableRow key={profile.id}>
+                      <TableCell>{profile.school || 'N/A'}</TableCell>
+                      <TableCell>{profile.fraternity || 'N/A'}</TableCell>
+                      <TableCell>{profile.email}</TableCell>
+                      <TableCell className="text-right">
+                        <Link to={`/admin/clients/${profile.id}`}>
+                          <Button variant="outline" size="sm">
+                            <Eye className="mr-2 h-4 w-4" /> View Client Profile
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>

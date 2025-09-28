@@ -75,7 +75,9 @@ const AdminDashboard = () => {
         showError(`Failed to load all user profiles: ${error.message}`);
         setProfiles([]);
       } else if (data) {
-        setProfiles(data as Profile[]);
+        // Filter out admin profiles from the list
+        const filteredProfiles = (data as Profile[]).filter(profile => profile.role !== 'admin');
+        setProfiles(filteredProfiles);
         showSuccess('All profiles loaded successfully!');
       }
     } catch (error: any) {
@@ -174,7 +176,6 @@ const AdminDashboard = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {/* Removed TableHead for ID */}
                   <TableHead>School</TableHead>
                   <TableHead>Fraternity</TableHead>
                   <TableHead>Email</TableHead>
@@ -184,7 +185,6 @@ const AdminDashboard = () => {
               <TableBody>
                 {profiles.map((profile) => (
                   <TableRow key={profile.id}>
-                    {/* Removed TableCell for ID */}
                     <TableCell>{profile.school || 'N/A'}</TableCell>
                     <TableCell>{profile.fraternity || 'N/A'}</TableCell>
                     <TableCell>{profile.email}</TableCell>

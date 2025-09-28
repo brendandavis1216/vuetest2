@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from 'react'; // Import useEffect
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { showError, showSuccess } from '@/utils/toast';
-import { Upload, FileText, Trash2 } from 'lucide-react';
+import { Upload, FileText, Trash2, Download } from 'lucide-react'; // Added Download icon
 
 interface DocumentUploadCardProps {
   eventId: string;
   documentType: 'renders' | 'contract' | 'invoice' | 'equipment_list' | 'other_documents' | 'signed_contract';
   currentUrl: string | null;
   onDocumentUpdated: () => void;
-  readOnly?: boolean; // New prop to control editability
+  readOnly?: boolean;
 }
 
 const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
@@ -22,14 +22,13 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
   documentType,
   currentUrl,
   onDocumentUpdated,
-  readOnly = false, // Default to not read-only
+  readOnly = false,
 }) => {
   const { supabase, session } = useSupabase();
   const [uploading, setUploading] = useState(false);
 
   const documentTitle = documentType.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
-  // Log the currentUrl when it changes for debugging
   useEffect(() => {
     if (currentUrl) {
       console.log(`[${documentTitle}] Current document URL:`, currentUrl);
@@ -47,7 +46,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
     setUploading(true);
     const file = event.target.files[0];
     const fileExt = file.name.split('.').pop();
-    const filePath = `${eventId}/${documentType}-${Date.now()}.${fileExt}`; // Unique path per event/document type
+    const filePath = `${eventId}/${documentType}-${Date.now()}.${fileExt}`;
 
     console.log(`[${documentTitle} Upload] Attempting to upload file: ${file.name}`);
     console.log(`[${documentTitle} Upload] Target filePath in storage: ${filePath}`);
@@ -67,14 +66,12 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
     }
 
     console.log(`[${documentTitle} Upload] File uploaded successfully. Getting public URL.`);
-    // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from('event-documents')
       .getPublicUrl(filePath);
 
     console.log(`[${documentTitle} Upload] Generated public URL: ${publicUrlData.publicUrl}`);
 
-    // Update the event record with the new URL
     const updateColumn = `${documentType}_url`;
     console.log(`[${documentTitle} Upload] Updating event ${eventId} with column ${updateColumn} to URL: ${publicUrlData.publicUrl}`);
     const { error: updateError } = await supabase
@@ -87,7 +84,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
       showError(`Failed to update event with ${documentTitle} URL: ${updateError.message}`);
     } else {
       showSuccess(`${documentTitle} uploaded and linked successfully!`);
-      onDocumentUpdated(); // Trigger a refresh of the parent component
+      onDocumentUpdated();
       console.log(`[${documentTitle} Upload] Event record updated successfully.`);
     }
     setUploading(false);
@@ -99,10 +96,10 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
       return;
     }
 
-    setUploading(true); // Use uploading state for deletion too
+    setUploading(true);
     const urlParts = currentUrl.split('/');
     const fileName = urlParts[urlParts.length - 1];
-    const filePath = `${eventId}/${fileName}`; // Reconstruct path for deletion
+    const filePath = `${eventId}/${fileName}`;
 
     console.log(`[${documentTitle} Delete] Attempting to delete file from storage path: ${filePath}`);
 
@@ -117,7 +114,6 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
       return;
     }
 
-    // Clear the URL in the event record
     const updateColumn = `${documentType}_url`;
     console.log(`[${documentTitle} Delete] Clearing event ${eventId} column ${updateColumn}.`);
     const { error: updateError } = await supabase
@@ -169,7 +165,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
               <Input
                 id={`${documentType}-upload`}
                 type="file"
-                accept="*/*" // Allow all file types for now
+                accept="*/*"
                 onChange={handleFileUpload}
                 className="hidden"
                 disabled={uploading}
@@ -177,29 +173,29 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
             </>
           )}
           {currentUrl && (
-            <>
+            <a href={currentUrl} download className="w-full"> {/* Changed to <a> tag with download attribute */}
               <Button
                 variant="outline"
-                onClick={() => window.open(currentUrl, '_blank')}
                 disabled={uploading}
                 className="w-full"
               >
-                <FileText className="mr-2 h-4 w-4" /> View {documentTitle}
+                <Download className="mr-2 h-4 w-4" /> Download {documentTitle}
               </Button>
+            </a>
 
-              {/* Show delete button only if not readOnly AND not a signed_contract */}
-              {!readOnly && documentType !== 'signed_contract' && (
-                <Button
-                  variant="destructive"
-                  onClick={handleDeleteDocument}
-                  disabled={uploading}
-                  className="w-full"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {uploading ? 'Deleting...' : `Delete ${documentTitle}`}
-                </Button>
-              )}
-            </>
+            // The original "View Document" button logic is now handled by the <a> tag above.
+            // The delete button remains the same.
+          )}
+          {currentUrl && !readOnly && documentType !== 'signed_contract' && (
+            <Button
+              variant="destructive"
+              onClick={handleDeleteDocument}
+              disabled={uploading}
+              className="w-full"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {uploading ? 'Deleting...' : `Delete ${documentTitle}`}
+            </Button>
           )}
         </div>
       </CardContent>

@@ -109,20 +109,20 @@ const EventDetails = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
         <Button variant="outline" onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
         </Button>
-        <h1 className="text-3xl font-bold">Event: {event.event_name || 'Untitled Event'}</h1>
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-50 text-center sm:text-left">Event: {event.event_name || 'Untitled Event'}</h1>
       </div>
 
-      <Card>
+      <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Event Overview</CardTitle>
+          <CardTitle className="text-2xl font-semibold">Event Overview</CardTitle>
           <CardDescription>Key details about your event.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
             <p className="text-sm font-medium text-muted-foreground">Event Name/Theme</p>
             <p className="text-lg font-semibold">{event.event_name || 'N/A'}</p>
@@ -146,7 +146,7 @@ const EventDetails = () => {
         </CardContent>
       </Card>
 
-      <h2 className="text-2xl font-bold mt-8 mb-4">Event Documents</h2>
+      <h2 className="text-3xl font-bold mt-8 mb-4 text-gray-900 dark:text-gray-50">Event Documents</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Signed Contract: Client uploads, Admin views */}
         <DocumentUploadCard

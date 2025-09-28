@@ -58,59 +58,61 @@ const Dashboard = () => {
   }, [fetchEvents]);
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
+    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-50">Dashboard</h1>
         <CreateEventDialog onEventCreated={fetchEvents} />
       </div>
       <div className="grid grid-cols-1 gap-6">
-        <Card>
+        <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Your Events</CardTitle>
-            <CardDescription>Manage your upcoming events.</CardDescription>
+            <CardTitle className="text-2xl font-semibold">Your Events</CardTitle>
+            <CardDescription>Manage your upcoming events and track their progress.</CardDescription>
           </CardHeader>
           <CardContent>
             {loadingEvents ? (
               <div className="space-y-4">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
               </div>
             ) : events.length === 0 ? (
-              <p className="text-muted-foreground">No events created yet. Click "Create Your Event" to get started!</p>
+              <p className="text-muted-foreground text-center py-8">No events created yet. Click "Create Your Event" to get started!</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Event Name/Theme</TableHead> {/* New Table Head */}
-                    <TableHead>Event Date</TableHead>
-                    <TableHead>Artist Name</TableHead>
-                    <TableHead>Budget</TableHead>
-                    <TableHead>Contact Phone</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {events.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell className="font-medium">{event.event_name || 'Untitled Event'}</TableCell> {/* Display event name */}
-                      <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
-                      <TableCell>{event.artist_name || 'N/A'}</TableCell>
-                      <TableCell>${event.budget.toLocaleString()}</TableCell>
-                      <TableCell>{event.contact_phone}</TableCell>
-                      <TableCell className="text-right flex justify-end space-x-2">
-                        <Link to={`/events/${event.id}`}>
-                          <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">View Event</span>
-                          </Button>
-                        </Link>
-                        <EditEventDialog event={event} onEventUpdated={fetchEvents} />
-                      </TableCell>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[150px]">Event Name/Theme</TableHead>
+                      <TableHead className="min-w-[120px]">Event Date</TableHead>
+                      <TableHead className="min-w-[120px]">Artist Name</TableHead>
+                      <TableHead className="min-w-[100px]">Budget</TableHead>
+                      <TableHead className="min-w-[150px]">Contact Phone</TableHead>
+                      <TableHead className="text-right min-w-[80px]">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {events.map((event) => (
+                      <TableRow key={event.id}>
+                        <TableCell className="font-medium">{event.event_name || 'Untitled Event'}</TableCell>
+                        <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
+                        <TableCell>{event.artist_name || 'N/A'}</TableCell>
+                        <TableCell>${event.budget.toLocaleString()}</TableCell>
+                        <TableCell>{event.contact_phone}</TableCell>
+                        <TableCell className="text-right flex justify-end space-x-2">
+                          <Link to={`/events/${event.id}`}>
+                            <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only">View Event</span>
+                            </Button>
+                          </Link>
+                          <EditEventDialog event={event} onEventUpdated={fetchEvents} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
           </CardContent>
         </Card>

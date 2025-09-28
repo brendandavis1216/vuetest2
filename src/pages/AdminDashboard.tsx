@@ -7,7 +7,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { showSuccess, showError } from '@/utils/toast';
 import { useNavigate, Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { FileStack, ArrowLeft, Eye } from 'lucide-react';
 import { format } from 'date-fns';
@@ -39,7 +38,6 @@ const AdminDashboard = () => {
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null);
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [userEvents, setUserEvents] = useState<Event[]>([]);
   const [loadingUserEvents, setLoadingUserEvents] = useState(false);
@@ -116,33 +114,6 @@ const AdminDashboard = () => {
     }
   }, [isAdmin, loadingAdminStatus, navigate, fetchAllProfiles]);
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
-    setIsUpdatingRole(userId);
-    try {
-      const { data, error } = await supabase.functions.invoke('update-user-role', {
-        body: { userId, newRole },
-      });
-
-      if (error) {
-        console.error('Error invoking update-user-role function:', error.message);
-        showError(`Failed to update role: ${error.message}`);
-      } else if (data && data.error) {
-        console.error('Error from update-user-role function:', data.error);
-        showError(`Failed to update role: ${data.error}`);
-      } else {
-        showSuccess('User role updated successfully!');
-        setProfiles(prevProfiles =>
-          prevProfiles.map(p => (p.id === userId ? { ...p, role: newRole } : p))
-        );
-      }
-    } catch (error: any) {
-      console.error('Unexpected error calling edge function:', error.message);
-      showError(`An unexpected error occurred: ${error.message}`);
-    } finally {
-      setIsUpdatingRole(null);
-    }
-  };
-
   const handleViewUserEvents = (user: Profile) => {
     setSelectedUser(user);
     fetchUserEvents(user.id);
@@ -179,7 +150,7 @@ const AdminDashboard = () => {
         <Card>
           <CardHeader>
             <CardTitle>All User Profiles</CardTitle>
-            <CardDescription>Manage user roles and view their associated events.</CardDescription>
+            <CardDescription>View user roles and their associated events.</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -200,27 +171,12 @@ const AdminDashboard = () => {
                     <TableCell>{profile.first_name || 'N/A'}</TableCell>
                     <TableCell>{profile.last_name || 'N/A'}</TableCell>
                     <TableCell>{profile.email}</TableCell>
-                    <TableCell>
-                      <Select
-                        value={profile.role}
-                        onValueChange={(newRole) => handleRoleChange(profile.id, newRole)}
-                        disabled={isUpdatingRole === profile.id}
-                      >
-                        <SelectTrigger className="w-[120px]">
-                          <SelectValue placeholder="Select Role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="client">Client</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
+                    <TableCell>{profile.role}</TableCell> {/* Display role as text */}
                     <TableCell className="text-right">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleViewUserEvents(profile)}
-                        disabled={isUpdatingRole === profile.id}
                       >
                         <Eye className="mr-2 h-4 w-4" /> View Events
                       </Button>

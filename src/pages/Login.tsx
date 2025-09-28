@@ -31,6 +31,9 @@ const LoginPage = () => {
           theme="light"
           redirectTo={window.location.origin + '/profile'} // Redirect to profile after successful auth
         />
+        <p className="mt-4 text-center text-sm text-gray-600">
+          Administrators: Use your designated admin credentials above.
+        </p>
       </div>
     </div>
   );

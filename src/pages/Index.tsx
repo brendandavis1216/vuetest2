@@ -15,10 +15,7 @@ const Index = () => {
         </p>
         <div className="flex space-x-4 justify-center">
           <Link to="/login">
-            <Button>User Login</Button>
-          </Link>
-          <Link to="/login">
-            <Button variant="outline">Admin Login</Button>
+            <Button>Login</Button>
           </Link>
         </div>
       </div>

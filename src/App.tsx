@@ -7,8 +7,9 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/Login";
 import ProfilePage from "./pages/Profile";
-import Dashboard from "./pages/Dashboard"; // Import the new Dashboard page
-import MainLayout from "./components/MainLayout"; // Import the new MainLayout
+import Dashboard from "./pages/Dashboard";
+import AdminDashboard from "./pages/AdminDashboard"; // Import the new AdminDashboard page
+import MainLayout from "./components/MainLayout";
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
 import React, { useEffect } from "react";
 
@@ -65,6 +66,7 @@ const App = () => (
               <Route element={<MainLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/admin" element={<AdminDashboard />} /> {/* New Admin Dashboard route */}
               </Route>
 
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

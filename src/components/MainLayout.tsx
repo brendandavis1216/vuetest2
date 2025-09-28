@@ -1,15 +1,33 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { showSuccess, showError } from '@/utils/toast';
-import { Home, User } from 'lucide-react';
+import { Home, User, Shield } from 'lucide-react'; // Added Shield icon
 
 const MainLayout: React.FC = () => {
-  const { supabase } = useSupabase();
+  const { supabase, session } = useSupabase();
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (session?.user) {
+        const { data, error } = await supabase.rpc('is_admin');
+        if (error) {
+          console.error('Error checking admin role:', error.message);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(data);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    checkAdmin();
+  }, [session, supabase]);
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -40,6 +58,13 @@ const MainLayout: React.FC = () => {
                 <User className="mr-2 h-4 w-4" /> Profile
               </Button>
             </Link>
+            {isAdmin && (
+              <Link to="/admin">
+                <Button variant="ghost" className="text-primary-foreground hover:bg-primary-foreground/10">
+                  <Shield className="mr-2 h-4 w-4" /> Admin
+                </Button>
+              </Link>
+            )}
             <Button onClick={handleSignOut} variant="secondary">
               Sign Out
             </Button>

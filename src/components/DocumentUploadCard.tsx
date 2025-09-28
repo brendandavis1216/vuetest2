@@ -26,7 +26,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
 }) => {
   const { supabase, session } = useSupabase();
   const [uploading, setUploading] = useState(false);
-  const [downloading, setDownloading] = useState(false); // New state for download loading
+  const [downloading, setDownloading] = useState(false);
 
   const documentTitle = documentType.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
@@ -98,15 +98,21 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
     }
 
     setUploading(true);
-    const urlParts = currentUrl.split('/');
-    const fileName = urlParts[urlParts.length - 1];
-    const filePath = `${eventId}/${fileName}`;
+    // Extract the file path within the bucket from the public URL
+    const urlParts = currentUrl.split('/public/event-documents/');
+    const filePathInBucket = urlParts.length > 1 ? urlParts[1] : '';
 
-    console.log(`[${documentTitle} Delete] Attempting to delete file from storage path: ${filePath}`);
+    if (!filePathInBucket) {
+      showError('Could not determine file path for deletion.');
+      setUploading(false);
+      return;
+    }
+
+    console.log(`[${documentTitle} Delete] Attempting to delete file from storage path: ${filePathInBucket}`);
 
     const { error: deleteError } = await supabase.storage
       .from('event-documents')
-      .remove([filePath]);
+      .remove([filePathInBucket]);
 
     if (deleteError) {
       console.error(`[${documentTitle} Delete] Error deleting ${documentType}:`, deleteError.message);
@@ -141,20 +147,36 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
 
     setDownloading(true);
     try {
-      const response = await fetch(currentUrl);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // Extract the path within the bucket from the public URL
+      // Example: https://[project_id].supabase.co/storage/v1/object/public/event-documents/eventId/filename.ext
+      // We need: eventId/filename.ext
+      const urlParts = currentUrl.split('/public/event-documents/');
+      if (urlParts.length < 2) {
+        throw new Error('Invalid document URL format for download.');
       }
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = currentUrl.split('/').pop() || `${documentType}-document`; // Use original filename or a default
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      showSuccess(`${documentTitle} downloaded successfully!`);
+      const filePathInBucket = urlParts[1];
+
+      const { data, error } = await supabase.storage
+        .from('event-documents')
+        .download(filePathInBucket);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data) {
+        const url = window.URL.createObjectURL(data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filePathInBucket.split('/').pop() || `${documentType}-document`; // Use original filename or a default
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        showSuccess(`${documentTitle} downloaded successfully!`);
+      } else {
+        throw new Error('No data received for download.');
+      }
     } catch (error: any) {
       console.error(`[${documentTitle} Download] Error downloading document:`, error);
       showError(`Failed to download ${documentTitle}: ${error.message}`);
@@ -175,7 +197,6 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
         {currentUrl ? (
           <div className="mb-4">
             <p className="text-sm text-muted-foreground">Document available.</p>
-            {/* This link is just for displaying the filename, not for direct navigation/download */}
             <span className="text-blue-600 text-sm truncate block">
               {currentUrl.split('/').pop()}
             </span>
@@ -207,7 +228,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
           {currentUrl && (
             <Button
               variant="outline"
-              onClick={handleDownload} // Use the new handleDownload function
+              onClick={handleDownload}
               disabled={uploading || downloading}
               className="w-full"
             >

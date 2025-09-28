@@ -13,9 +13,14 @@ const Index = () => {
         <p className="text-xl text-gray-600 mb-6">
           Please log in to continue.
         </p>
-        <Link to="/login">
-          <Button>Go to Login</Button>
-        </Link>
+        <div className="flex space-x-4 justify-center">
+          <Link to="/login">
+            <Button>User Login</Button>
+          </Link>
+          <Link to="/login">
+            <Button variant="outline">Admin Login</Button>
+          </Link>
+        </div>
       </div>
       <MadeWithDyad />
     </div>

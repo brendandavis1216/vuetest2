@@ -12,10 +12,10 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminCalendar from "./pages/AdminCalendar";
 import AdminClientProfile from "./pages/AdminClientProfile";
-import LeadDatabase from "./pages/LeadDatabase"; // Import the new LeadDatabase page
+import LeadDatabase from "./pages/LeadDatabase";
 import EventDetails from "./pages/EventDetails";
 import EventMedia from "./pages/EventMedia";
-import StageBuilder from "./pages/StageBuilder"; // Import the new StageBuilder page
+// import StageBuilder from "./pages/StageBuilder"; // Removed StageBuilder import
 import MainLayout from "./components/MainLayout";
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
 import React, { useEffect, useState, useCallback } from "react";
@@ -65,7 +65,7 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
         // Allow access to specific admin paths for non-admins if they are explicitly linked,
         // but the pages themselves will handle permission checks.
-        const allowedAdminPaths = ['/admin/analytics', '/admin/calendar', '/admin/clients', '/admin/leads']; // Added /admin/leads
+        const allowedAdminPaths = ['/admin/analytics', '/admin/calendar', '/admin/clients', '/admin/leads'];
         const isAllowedAdminPath = allowedAdminPaths.some(path => currentPath.startsWith(path));
 
         if (currentPath.startsWith('/admin') && !isAllowedAdminPath) {
@@ -112,7 +112,7 @@ const App = () => (
                 <Route path="/admin/leads" element={<LeadDatabase />} />
                 <Route path="/events/:eventId" element={<EventDetails />} />
                 <Route path="/events/:eventId/media" element={<EventMedia />} />
-                <Route path="/events/:eventId/stage-builder" element={<StageBuilder />} /> {/* New StageBuilder route */}
+                {/* Removed StageBuilder route */}
               </Route>
 
               <Route path="*" element={<NotFound />} />

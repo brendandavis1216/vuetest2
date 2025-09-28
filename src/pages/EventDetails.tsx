@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { showError } from '@/utils/toast';
 import { format } from 'date-fns';
-import { ArrowLeft, Image, LayoutDashboard } from 'lucide-react'; // Import LayoutDashboard icon
+import { ArrowLeft, Image } from 'lucide-react'; // Removed LayoutDashboard icon
 import { Skeleton } from '@/components/ui/skeleton';
 import DocumentUploadCard from '@/components/DocumentUploadCard';
 import EventChecklist from '@/components/EventChecklist';
@@ -161,13 +161,6 @@ const EventDetails = () => {
             <Button variant="outline">
               <>
                 <Image className="mr-2 h-4 w-4" /> View/Add Media
-              </>
-            </Button>
-          </Link>
-          <Link to={`/events/${event.id}/stage-builder`}> {/* New Stage Builder button */}
-            <Button variant="outline">
-              <>
-                <LayoutDashboard className="mr-2 h-4 w-4" /> Build Stage
               </>
             </Button>
           </Link>

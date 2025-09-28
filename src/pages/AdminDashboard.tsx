@@ -2,24 +2,25 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { showSuccess, showError } from '@/utils/toast';
-import { useNavigate, Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { FileStack, ArrowLeft, Eye } from 'lucide-react';
+import { FileStack, ArrowLeft, Eye, Building2 } from 'lucide-react'; // Added Building2 icon
 import { format } from 'date-fns';
-import { useAdminEventNotifications } from '@/hooks/useAdminEventNotifications'; // Import the new hook
-import EditEventDialog from '@/components/EditEventDialog'; // Ensure EditEventDialog is imported
+import { useAdminEventNotifications } from '@/hooks/useAdminEventNotifications';
+import EditEventDialog from '@/components/EditEventDialog';
 
 interface Profile {
   id: string;
-  school: string | null; // Changed from first_name
-  fraternity: string | null; // Changed from last_name
+  school: string | null;
+  fraternity: string | null;
   avatar_url: string | null;
   role: string;
-  email: string; // Ensure email is part of the profile interface
+  email: string;
+  chapter_id: string | null; // Ensure chapter_id is included
 }
 
 interface Event {
@@ -36,7 +37,7 @@ interface Event {
   invoice_url: string | null;
   equipment_list_url: string | null;
   other_documents_url: string | null;
-  signed_contract_url: string | null; // New field
+  signed_contract_url: string | null;
 }
 
 const AdminDashboard = () => {
@@ -50,7 +51,6 @@ const AdminDashboard = () => {
   const [userEvents, setUserEvents] = useState<Event[]>([]);
   const [loadingUserEvents, setLoadingUserEvents] = useState(false);
 
-  // Activate the admin event notifications hook
   useAdminEventNotifications();
 
   const checkAdminStatus = useCallback(async () => {
@@ -81,7 +81,6 @@ const AdminDashboard = () => {
         showError(`Failed to load all user profiles: ${error.message}`);
         setProfiles([]);
       } else if (data) {
-        // Filter out admin profiles from the list
         const filteredProfiles = (data as Profile[]).filter(profile => profile.role !== 'admin');
         setProfiles(filteredProfiles);
         showSuccess('All profiles loaded successfully!');
@@ -98,7 +97,7 @@ const AdminDashboard = () => {
     setLoadingUserEvents(true);
     const { data, error } = await supabase
       .from('events')
-      .select('*, renders_url, contract_url, invoice_url, equipment_list_url, other_documents_url, signed_contract_url') // Select document URLs including the new one
+      .select('*, renders_url, contract_url, invoice_url, equipment_list_url, other_documents_url, signed_contract_url')
       .eq('user_id', userId)
       .order('event_date', { ascending: true });
 
@@ -139,7 +138,7 @@ const AdminDashboard = () => {
       event.invoice_url,
       event.equipment_list_url,
       event.other_documents_url,
-      event.signed_contract_url, // Include the new document
+      event.signed_contract_url,
     ];
     const uploadedCount = documentFields.filter(url => url !== null).length;
     const totalCategories = documentFields.length;
@@ -187,6 +186,7 @@ const AdminDashboard = () => {
                   <TableHead>Fraternity</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Chapter Profile</TableHead> {/* New Table Head */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -203,6 +203,17 @@ const AdminDashboard = () => {
                       >
                         <Eye className="mr-2 h-4 w-4" /> View Events
                       </Button>
+                    </TableCell>
+                    <TableCell className="text-right"> {/* New Table Cell */}
+                      {profile.chapter_id ? (
+                        <Link to={`/admin/chapters/${profile.chapter_id}`}>
+                          <Button variant="outline" size="sm">
+                            <Building2 className="mr-2 h-4 w-4" /> View Chapter Profile
+                          </Button>
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground">N/A</span>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -242,8 +253,8 @@ const AdminDashboard = () => {
                       <TableHead>Budget</TableHead>
                       <TableHead>Contact Phone</TableHead>
                       <TableHead>Completion</TableHead>
-                      <TableHead className="text-center min-w-[120px]">View Documents</TableHead> {/* New column header */}
-                      <TableHead className="text-center min-w-[80px]">Edit</TableHead> {/* New column header */}
+                      <TableHead className="text-center min-w-[120px]">View Documents</TableHead>
+                      <TableHead className="text-center min-w-[80px]">Edit</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -255,14 +266,14 @@ const AdminDashboard = () => {
                         <TableCell>${event.budget.toLocaleString()}</TableCell>
                         <TableCell>{event.contact_phone}</TableCell>
                         <TableCell>{calculateCompletionPercentage(event)}%</TableCell>
-                        <TableCell className="text-center"> {/* New cell for View Documents */}
+                        <TableCell className="text-center">
                           <Link to={`/events/${event.id}`}>
                             <Button variant="outline" size="sm">
                               View Documents
                             </Button>
                           </Link>
                         </TableCell>
-                        <TableCell className="text-center"> {/* New cell for Edit */}
+                        <TableCell className="text-center">
                           <EditEventDialog event={event} onEventUpdated={fetchUserEvents.bind(null, selectedUser.id)} />
                         </TableCell>
                       </TableRow>

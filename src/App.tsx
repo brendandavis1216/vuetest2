@@ -11,17 +11,17 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminEventDocuments from "./pages/AdminEventDocuments";
 import AdminAnalytics from "./pages/AdminAnalytics";
-import AdminCalendar from "./pages/AdminCalendar"; // Import the new AdminCalendar page
+import AdminCalendar from "./pages/AdminCalendar";
+import AdminChapterProfile from "./pages/AdminChapterProfile"; // Import the new AdminChapterProfile page
 import EventDetails from "./pages/EventDetails";
 import MainLayout from "./components/MainLayout";
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
-import React, { useEffect, useState, useCallback } from "react"; // Import useState and useCallback
+import React, { useEffect, useState, useCallback } from "react";
 
 const queryClient = new QueryClient();
 
-// A wrapper component to handle authentication redirects
 const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { supabase, session, loading } = useSupabase(); // Get supabase client
+  const { supabase, session, loading } = useSupabase();
   const navigate = useNavigate();
   const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -53,25 +53,20 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const currentPath = location.pathname;
 
     if (session) {
-      // If authenticated
       if (isAdmin) {
-        // Admins should go to /admin, redirect if they are on /login, /, or /dashboard
         if (currentPath === '/login' || currentPath === '/' || currentPath === '/dashboard') {
           navigate('/admin', { replace: true });
         }
       } else {
-        // Non-admins should go to /dashboard, redirect if they are on /login or /
         if (currentPath === '/login' || currentPath === '/') {
           navigate('/dashboard', { replace: true });
         }
-        // If a non-admin somehow lands on /admin or /admin/event-documents, redirect them to /dashboard
-        if (currentPath.startsWith('/admin') && !currentPath.startsWith('/admin/event-documents') && !currentPath.startsWith('/admin/analytics') && !currentPath.startsWith('/admin/calendar')) {
+        if (currentPath.startsWith('/admin') && !currentPath.startsWith('/admin/event-documents') && !currentPath.startsWith('/admin/analytics') && !currentPath.startsWith('/admin/calendar') && !currentPath.startsWith('/admin/chapters')) { // Added /admin/chapters
           navigate('/dashboard', { replace: true });
         }
       }
     } else {
-      // If unauthenticated, redirect to login page (unless already there)
-      if (currentPath !== '/login' && currentPath !== '/') { // Also allow '/' as a public landing
+      if (currentPath !== '/login' && currentPath !== '/') {
         navigate('/login', { replace: true });
       }
     }
@@ -98,20 +93,19 @@ const App = () => (
           <AuthWrapper>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
-              <Route path="/" element={<Index />} /> {/* Public landing page */}
+              <Route path="/" element={<Index />} />
               
-              {/* Authenticated routes wrapped in MainLayout */}
               <Route element={<MainLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/event-documents" element={<AdminEventDocuments />} />
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
-                <Route path="/admin/calendar" element={<AdminCalendar />} /> {/* New Admin Calendar Route */}
+                <Route path="/admin/calendar" element={<AdminCalendar />} />
+                <Route path="/admin/chapters/:chapterId" element={<AdminChapterProfile />} /> {/* New Admin Chapter Profile Route */}
                 <Route path="/events/:id" element={<EventDetails />} />
               </Route>
 
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthWrapper>

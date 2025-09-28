@@ -246,9 +246,9 @@ const LeadDatabase = () => {
           <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">
-                <> {/* Explicitly wrap children in a fragment */}
+                <span> {/* Changed fragment to span */}
                   <UploadCloud className="mr-2 h-4 w-4" /> Import CSV
-                </>
+                </span>
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
@@ -287,9 +287,9 @@ const LeadDatabase = () => {
           <Dialog open={isAddLeadDialogOpen} onOpenChange={setIsAddLeadDialogOpen}>
             <DialogTrigger asChild>
               <Button>
-                <> {/* Explicitly wrap children in a fragment */}
+                <span> {/* Changed fragment to span */}
                   <PlusCircle className="mr-2 h-4 w-4" /> Add New Lead
-                </>
+                </span>
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px)">

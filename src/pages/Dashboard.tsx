@@ -1,35 +1,100 @@
 "use client";
 
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import CreateEventDialog from '@/components/CreateEventDialog';
+import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
+import { showError } from '@/utils/toast';
+import { format } from 'date-fns';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface Event {
+  id: string;
+  event_date: string;
+  artist_name: string;
+  budget: number;
+  contact_phone: string;
+  created_at: string;
+}
 
 const Dashboard = () => {
+  const { supabase, session } = useSupabase();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  const fetchEvents = useCallback(async () => {
+    if (!session?.user.id) {
+      setEvents([]);
+      setLoadingEvents(false);
+      return;
+    }
+
+    setLoadingEvents(true);
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('user_id', session.user.id)
+      .order('event_date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching events:', error.message);
+      showError('Failed to load your events.');
+      setEvents([]);
+    } else if (data) {
+      setEvents(data as Event[]);
+    }
+    setLoadingEvents(false);
+  }, [session, supabase]);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Dashboard</h1>
+        <CreateEventDialog onEventCreated={fetchEvents} />
+      </div>
+      <div className="grid grid-cols-1 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Welcome!</CardTitle>
+            <CardTitle>Your Events</CardTitle>
+            <CardDescription>Manage your upcoming events.</CardDescription>
           </CardHeader>
           <CardContent>
-            <p>This is your personalized dashboard. More features coming soon!</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>You can add quick links or actions here.</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>Display recent user activity or notifications.</p>
+            {loadingEvents ? (
+              <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ) : events.length === 0 ? (
+              <p className="text-muted-foreground">No events created yet. Click "Create Your Event" to get started!</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Event Date</TableHead>
+                    <TableHead>Artist Name</TableHead>
+                    <TableHead>Budget</TableHead>
+                    <TableHead>Contact Phone</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {events.map((event) => (
+                    <TableRow key={event.id}>
+                      <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
+                      <TableCell>{event.artist_name}</TableCell>
+                      <TableCell>${event.budget.toLocaleString()}</TableCell>
+                      <TableCell>{event.contact_phone}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>

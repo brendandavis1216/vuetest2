@@ -9,7 +9,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { FileStack, ArrowLeft, Eye } from 'lucide-react'; // Added ArrowLeft and Eye icons
+import { FileStack, ArrowLeft, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface Profile {
@@ -18,7 +18,7 @@ interface Profile {
   last_name: string | null;
   avatar_url: string | null;
   role: string;
-  email: string;
+  email: string; // Ensure email is part of the profile interface
 }
 
 interface Event {
@@ -40,8 +40,8 @@ const AdminDashboard = () => {
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null);
-  const [selectedUser, setSelectedUser] = useState<Profile | null>(null); // State for selected user
-  const [userEvents, setUserEvents] = useState<Event[]>([]); // State for selected user's events
+  const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
+  const [userEvents, setUserEvents] = useState<Event[]>([]);
   const [loadingUserEvents, setLoadingUserEvents] = useState(false);
 
   const checkAdminStatus = useCallback(async () => {
@@ -64,26 +64,23 @@ const AdminDashboard = () => {
 
   const fetchAllProfiles = useCallback(async () => {
     setLoadingProfiles(true);
-    // Changed 'auth_users:id(email)' to 'users(email)' for better Supabase relationship inference
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, first_name, last_name, avatar_url, role, users(email)');
+    try {
+      const { data, error } = await supabase.functions.invoke('get-all-user-profiles');
 
-    if (error) {
-      console.error('Error fetching all profiles:', error.message);
-      showError('Failed to load all user profiles.');
-      setProfiles([]);
-    } else if (data) {
-      console.log("Fetched profiles data:", data); // Log the raw data for debugging
-      const profilesWithEmail = data.map(p => ({
-        ...p,
-        // Access email from the 'users' object
-        email: (p.users as { email: string } | null)?.email || 'N/A'
-      }));
-      setProfiles(profilesWithEmail);
-      showSuccess('All profiles loaded successfully!');
+      if (error) {
+        console.error('Error invoking get-all-user-profiles function:', error.message);
+        showError(`Failed to load all user profiles: ${error.message}`);
+        setProfiles([]);
+      } else if (data) {
+        setProfiles(data as Profile[]);
+        showSuccess('All profiles loaded successfully!');
+      }
+    } catch (error: any) {
+      console.error('Unexpected error calling edge function:', error.message);
+      showError(`An unexpected error occurred: ${error.message}`);
+    } finally {
+      setLoadingProfiles(false);
     }
-    setLoadingProfiles(false);
   }, [supabase]);
 
   const fetchUserEvents = useCallback(async (userId: string) => {

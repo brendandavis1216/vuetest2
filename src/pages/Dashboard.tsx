@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import CreateEventDialog from '@/components/CreateEventDialog';
+import EditEventDialog from '@/components/EditEventDialog'; // Import the new EditEventDialog
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { showError } from '@/utils/toast';
 import { format } from 'date-fns';
@@ -13,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface Event {
   id: string;
   event_date: string;
-  artist_name: string;
+  artist_name: string | null; // Updated to be nullable
   budget: number;
   contact_phone: string;
   created_at: string;
@@ -81,15 +82,19 @@ const Dashboard = () => {
                     <TableHead>Artist Name</TableHead>
                     <TableHead>Budget</TableHead>
                     <TableHead>Contact Phone</TableHead>
+                    <TableHead className="text-right">Actions</TableHead> {/* Added Actions column */}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {events.map((event) => (
                     <TableRow key={event.id}>
                       <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
-                      <TableCell>{event.artist_name}</TableCell>
+                      <TableCell>{event.artist_name || 'N/A'}</TableCell> {/* Display N/A if artist_name is null */}
                       <TableCell>${event.budget.toLocaleString()}</TableCell>
                       <TableCell>{event.contact_phone}</TableCell>
+                      <TableCell className="text-right">
+                        <EditEventDialog event={event} onEventUpdated={fetchEvents} />
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

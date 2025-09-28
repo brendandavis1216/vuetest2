@@ -175,9 +175,17 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
       const objectUrl = window.URL.createObjectURL(finalBlob);
 
       if (fileExtension === 'pdf') {
-        window.open(objectUrl, '_blank');
+        // Use a temporary anchor tag to open PDF in a new tab
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.target = '_blank'; // Open in a new tab
+        a.rel = 'noopener noreferrer'; // Security best practice
+        document.body.appendChild(a);
+        a.click();
+        a.remove(); // Clean up the temporary anchor
         showSuccess(`${documentTitle} opened in a new tab!`);
       } else {
+        // For other file types, trigger download
         const a = document.createElement('a');
         a.href = objectUrl;
         a.download = filePathInBucket.split('/').pop() || `${documentType}-document`;
@@ -186,7 +194,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
         a.remove();
         showSuccess(`${documentTitle} downloaded successfully!`);
       }
-      window.URL.revokeObjectURL(objectUrl);
+      window.URL.revokeObjectURL(objectUrl); // Revoke the URL after use
     } catch (error: any) {
       console.error(`[${documentTitle} Action] Error:`, error);
       showError(`Failed to perform action on ${documentTitle}: ${error.message}`);

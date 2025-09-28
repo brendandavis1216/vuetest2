@@ -31,10 +31,11 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, isAdmin, onSign
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-primary-foreground">
-                <> {/* Explicitly wrap children in a fragment */}
+                {/* Changed fragment to a span to ensure a single child element */}
+                <span>
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Toggle navigation</span>
-                </>
+                </span>
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64 p-0 bg-sidebar">

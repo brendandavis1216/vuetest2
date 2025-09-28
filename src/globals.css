@@ -92,3 +92,19 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom styles for react-day-picker modifiers */
+.rdp-day_eventRed {
+  background-color: hsl(var(--destructive)) !important;
+  color: hsl(var(--destructive-foreground)) !important;
+}
+
+.rdp-day_eventYellow {
+  background-color: hsl(48 96% 89%) !important; /* A light yellow, similar to shadcn's accent */
+  color: hsl(24 9.8% 10%) !important; /* Dark text for contrast */
+}
+
+.rdp-day_eventGreen {
+  background-color: hsl(142.1 76.2% 36.3%) !important; /* A green color */
+  color: white !important;
+}

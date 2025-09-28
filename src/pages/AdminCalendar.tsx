@@ -174,10 +174,11 @@ const AdminCalendar = () => {
     },
   };
 
-  const modifierStyles = {
-    eventRed: { backgroundColor: 'hsl(0 84.2% 60.2%)', color: 'white' }, // destructive color
-    eventYellow: { backgroundColor: 'hsl(48 96% 89%)', color: 'hsl(24 9.8% 10%)' }, // accent color, but a bit more visible
-    eventGreen: { backgroundColor: 'hsl(142.1 76.2% 36.3%)', color: 'white' }, // green color
+  // Removed modifierStyles and will use modifiersClassNames instead
+  const modifiersClassNames = {
+    eventRed: 'rdp-day_eventRed',
+    eventYellow: 'rdp-day_eventYellow',
+    eventGreen: 'rdp-day_eventGreen',
   };
 
   const formatCaption: DateFormatter = (month, options) => {
@@ -217,7 +218,7 @@ const AdminCalendar = () => {
               month={currentMonth} // Control the displayed month
               onMonthChange={setCurrentMonth} // Update currentMonth when navigating
               modifiers={modifiers}
-              modifierStyles={modifierStyles}
+              modifiersClassNames={modifiersClassNames} // Use modifiersClassNames
               formatters={{ formatCaption }}
               className="rdp-custom-styles"
               styles={{

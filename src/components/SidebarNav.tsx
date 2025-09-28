@@ -3,7 +3,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, User, Shield, BarChart, CalendarDays, LogOut, Users } from 'lucide-react';
+import { Home, User, Shield, BarChart, CalendarDays, LogOut, Users, UserPlus } from 'lucide-react'; // Added UserPlus icon
 import { cn } from '@/lib/utils';
 
 interface SidebarNavProps {
@@ -35,6 +35,12 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
       roles: ['admin'],
     },
     {
+      to: "/admin/leads", // New Lead Database link
+      icon: UserPlus,
+      label: "Lead Database",
+      roles: ['admin'],
+    },
+    {
       to: "/profile",
       icon: User,
       label: "Profile",
@@ -47,7 +53,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
       {navItems.map((item) => {
         const Icon = item.icon;
         // Adjusted isActive logic: Admin Dashboard is active if on /admin or any admin sub-path
-        const isActive = item.to === location.pathname || (item.to === "/admin" && location.pathname.startsWith("/admin") && !["/admin/analytics", "/admin/calendar"].some(path => location.pathname.startsWith(path)));
+        const isActive = item.to === location.pathname || (item.to === "/admin" && location.pathname.startsWith("/admin") && !["/admin/analytics", "/admin/calendar", "/admin/leads"].some(path => location.pathname.startsWith(path))); // Updated isActive for new admin path
         
         if ((isAdmin && item.roles.includes('admin')) || (!isAdmin && item.roles.includes('client') && !item.to.startsWith('/admin'))) {
           return (

@@ -12,8 +12,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminCalendar from "./pages/AdminCalendar";
 import AdminClientProfile from "./pages/AdminClientProfile";
+import LeadDatabase from "./pages/LeadDatabase"; // Import the new LeadDatabase page
 import EventDetails from "./pages/EventDetails";
-import EventMedia from "./pages/EventMedia"; // Import the new EventMedia page
+import EventMedia from "./pages/EventMedia";
 import MainLayout from "./components/MainLayout";
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
 import React, { useEffect, useState, useCallback } from "react";
@@ -63,7 +64,7 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
         // Allow access to specific admin paths for non-admins if they are explicitly linked,
         // but the pages themselves will handle permission checks.
-        const allowedAdminPaths = ['/admin/analytics', '/admin/calendar', '/admin/clients'];
+        const allowedAdminPaths = ['/admin/analytics', '/admin/calendar', '/admin/clients', '/admin/leads']; // Added /admin/leads
         const isAllowedAdminPath = allowedAdminPaths.some(path => currentPath.startsWith(path));
 
         if (currentPath.startsWith('/admin') && !isAllowedAdminPath) {
@@ -104,10 +105,10 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/admin" element={<AdminDashboard />} />
-                {/* Removed AdminEventDocuments route */}
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
                 <Route path="/admin/calendar" element={<AdminCalendar />} />
                 <Route path="/admin/clients/:userId" element={<AdminClientProfile />} />
+                <Route path="/admin/leads" element={<LeadDatabase />} /> {/* New LeadDatabase route */}
                 <Route path="/events/:eventId" element={<EventDetails />} />
                 <Route path="/events/:eventId/media" element={<EventMedia />} />
               </Route>

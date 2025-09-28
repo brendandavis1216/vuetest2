@@ -114,7 +114,9 @@ const AdminCalendar = () => {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between mb-6">
         <Button variant="outline" onClick={() => navigate('/admin')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Admin Dashboard
+          <> {/* Explicitly wrap children in a fragment */}
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Admin Dashboard
+          </>
         </Button>
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <CalendarDays className="h-7 w-7" /> Event Calendar

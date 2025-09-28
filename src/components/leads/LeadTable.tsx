@@ -69,7 +69,20 @@ const LeadTable: React.FC<LeadTableProps> = ({
                   <TableCell className="font-medium">{lead.school}</TableCell>
                   <TableCell>{lead.fraternity}</TableCell>
                   <TableCell>{lead.contact_phone}</TableCell>
-                  <TableCell>{lead.instagram_handle || 'N/A'}</TableCell>
+                  <TableCell>
+                    {lead.instagram_handle ? (
+                      <a
+                        href={`https://instagram.com/${lead.instagram_handle.replace(/^@/, '')}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 hover:underline"
+                      >
+                        {lead.instagram_handle}
+                      </a>
+                    ) : (
+                      'N/A'
+                    )}
+                  </TableCell>
                   <TableCell>{lead.contact_name || 'N/A'}</TableCell>
                   <TableCell>
                     <Select

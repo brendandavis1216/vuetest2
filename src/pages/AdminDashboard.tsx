@@ -13,8 +13,8 @@ import { format } from 'date-fns';
 
 interface Profile {
   id: string;
-  first_name: string | null;
-  last_name: string | null;
+  school: string | null; // Changed from first_name
+  fraternity: string | null; // Changed from last_name
   avatar_url: string | null;
   role: string;
   email: string; // Ensure email is part of the profile interface
@@ -175,8 +175,8 @@ const AdminDashboard = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>ID</TableHead>
-                  <TableHead>First Name</TableHead>
-                  <TableHead>Last Name</TableHead>
+                  <TableHead>School</TableHead> {/* Changed from First Name */}
+                  <TableHead>Fraternity</TableHead> {/* Changed from Last Name */}
                   <TableHead>Email</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -185,8 +185,8 @@ const AdminDashboard = () => {
                 {profiles.map((profile) => (
                   <TableRow key={profile.id}>
                     <TableCell className="font-medium">{profile.id.substring(0, 8)}...</TableCell>
-                    <TableCell>{profile.first_name || 'N/A'}</TableCell>
-                    <TableCell>{profile.last_name || 'N/A'}</TableCell>
+                    <TableCell>{profile.school || 'N/A'}</TableCell> {/* Display school */}
+                    <TableCell>{profile.fraternity || 'N/A'}</TableCell> {/* Display fraternity */}
                     <TableCell>{profile.email}</TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -209,7 +209,7 @@ const AdminDashboard = () => {
             <Button variant="outline" onClick={() => setSelectedUser(null)}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to All Users
             </Button>
-            <h2 className="text-2xl font-bold">Events for: {selectedUser.first_name} {selectedUser.last_name} ({selectedUser.email})</h2>
+            <h2 className="text-2xl font-bold">Events for: {selectedUser.school} {selectedUser.fraternity} ({selectedUser.email})</h2> {/* Display school and fraternity */}
           </div>
 
           <Card>

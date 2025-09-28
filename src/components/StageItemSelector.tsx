@@ -35,22 +35,32 @@ const allStageItems: StageItem[] = [
   { id: 'light-1', name: 'LED Wash Light', category: 'lighting', icon: Lightbulb },
   { id: 'light-2', name: 'Moving Head Spot', category: 'lighting', icon: Lightbulb },
   { id: 'light-3', name: 'Strobe Light', category: 'lighting', icon: Lightbulb },
+  { id: 'light-4', name: 'Followspot', category: 'lighting', icon: Lightbulb },
+  { id: 'light-5', name: 'Uplight', category: 'lighting', icon: Lightbulb },
   // Audio
   { id: 'audio-1', name: 'Line Array Speaker', category: 'audio', icon: Speaker },
   { id: 'audio-2', name: 'Subwoofer', category: 'audio', icon: Speaker },
   { id: 'audio-3', name: 'Wireless Microphone', category: 'audio', icon: Speaker },
+  { id: 'audio-4', name: 'Mixing Console', category: 'audio', icon: Speaker },
+  { id: 'audio-5', name: 'Monitor Speaker', category: 'audio', icon: Speaker },
   // Video
   { id: 'video-1', name: 'LED Video Wall Panel', category: 'video', icon: Monitor },
   { id: 'video-2', name: 'Projector', category: 'video', icon: Monitor },
   { id: 'video-3', name: 'Monitor Display', category: 'video', icon: Monitor },
+  { id: 'video-4', name: 'Video Switcher', category: 'video', icon: Monitor },
+  { id: 'video-5', name: 'Camera', category: 'video', icon: Monitor },
   // Staging
   { id: 'stage-1', name: 'Stage Deck (4x8)', category: 'staging', icon: Box },
   { id: 'stage-2', name: 'Truss Section (10ft)', category: 'staging', icon: Box },
   { id: 'stage-3', name: 'Riser', category: 'staging', icon: Box },
+  { id: 'stage-4', name: 'Backdrop', category: 'staging', icon: Box },
+  { id: 'stage-5', name: 'Podium', category: 'staging', icon: Box },
   // Special Effects
   { id: 'effect-1', name: 'Fog Machine', category: 'special_effects', icon: Sparkles },
   { id: 'effect-2', name: 'Confetti Cannon', category: 'special_effects', icon: Sparkles },
   { id: 'effect-3', name: 'CO2 Jet', category: 'special_effects', icon: Sparkles },
+  { id: 'effect-4', name: 'Haze Machine', category: 'special_effects', icon: Sparkles },
+  { id: 'effect-5', name: 'Bubble Machine', category: 'special_effects', icon: Sparkles },
 ];
 
 interface StageItemSelectorProps {
@@ -70,28 +80,31 @@ const StageItemSelector: React.FC<StageItemSelectorProps> = ({ onAddItem }) => {
       </CardHeader>
       <CardContent className="flex-grow flex flex-col p-0">
         <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex flex-grow">
-          <TabsList className="flex flex-col h-full p-2 border-r"> {/* Vertical TabsList */}
-            <ScrollArea className="flex-grow">
+          {/* Vertical TabsList for Categories */}
+          <TabsList className="flex flex-col h-full w-40 p-2 border-r bg-muted/20"> {/* Fixed width and background */}
+            <ScrollArea className="flex-grow pr-2"> {/* Added right padding for scrollbar */}
               {categories.map(category => {
                 const Icon = category.icon;
                 return (
                   <TabsTrigger
                     key={category.name}
                     value={category.name}
-                    className="flex items-center justify-start gap-2 w-full px-3 py-2 mb-1"
+                    className="flex items-center justify-start gap-2 w-full px-3 py-2 mb-1 text-left"
                   >
                     <Icon className="h-4 w-4 flex-shrink-0" />
-                    <span className="flex-grow text-left truncate">{category.label}</span>
+                    <span className="flex-grow truncate">{category.label}</span>
                   </TabsTrigger>
                 );
               })}
             </ScrollArea>
           </TabsList>
-          <div className="flex-grow flex flex-col"> {/* Container for TabsContent */}
-            <ScrollArea className="flex-grow p-4"> {/* ScrollArea for item list */}
+
+          {/* Container for TabsContent (Item List) */}
+          <div className="flex-grow flex flex-col">
+            <ScrollArea className="flex-grow p-4">
               {categories.map(category => (
                 <TabsContent key={category.name} value={category.name} className="mt-0">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3"> {/* Responsive grid for items */}
                     {itemsInActiveCategory.length > 0 ? (
                       itemsInActiveCategory.map(item => {
                         const ItemIcon = item.icon || PlusCircle; // Fallback icon
@@ -104,7 +117,7 @@ const StageItemSelector: React.FC<StageItemSelectorProps> = ({ onAddItem }) => {
                           >
                             <div className="flex items-center gap-2">
                               <ItemIcon className="h-5 w-5 text-primary flex-shrink-0" />
-                              <span className="flex-grow text-base font-medium truncate">{item.name}</span>
+                              <span className="text-base font-medium truncate">{item.name}</span>
                             </div>
                             <PlusCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           </Button>

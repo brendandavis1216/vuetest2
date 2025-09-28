@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { showError, showSuccess } from '@/utils/toast';
-import { Upload, FileText, Trash2, Download } from 'lucide-react'; // Added Download icon
+import { Upload, FileText, Trash2, Download } from 'lucide-react';
 
 interface DocumentUploadCardProps {
   eventId: string;
@@ -26,6 +26,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
 }) => {
   const { supabase, session } = useSupabase();
   const [uploading, setUploading] = useState(false);
+  const [downloading, setDownloading] = useState(false); // New state for download loading
 
   const documentTitle = documentType.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
@@ -132,6 +133,36 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
     setUploading(false);
   };
 
+  const handleDownload = async () => {
+    if (!currentUrl) {
+      showError(`No ${documentTitle} available to download.`);
+      return;
+    }
+
+    setDownloading(true);
+    try {
+      const response = await fetch(currentUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentUrl.split('/').pop() || `${documentType}-document`; // Use original filename or a default
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      showSuccess(`${documentTitle} downloaded successfully!`);
+    } catch (error: any) {
+      console.error(`[${documentTitle} Download] Error downloading document:`, error);
+      showError(`Failed to download ${documentTitle}: ${error.message}`);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   return (
     <Card className="flex flex-col">
       <CardHeader>
@@ -144,9 +175,10 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
         {currentUrl ? (
           <div className="mb-4">
             <p className="text-sm text-muted-foreground">Document available.</p>
-            <a href={currentUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm truncate block">
+            {/* This link is just for displaying the filename, not for direct navigation/download */}
+            <span className="text-blue-600 text-sm truncate block">
               {currentUrl.split('/').pop()}
-            </a>
+            </span>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground mb-4">No {documentTitle.toLowerCase()} uploaded yet.</p>
@@ -155,7 +187,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
           {!readOnly && (
             <>
               <Label htmlFor={`${documentType}-upload`} className="w-full">
-                <Button asChild className="w-full" disabled={uploading}>
+                <Button asChild className="w-full" disabled={uploading || downloading}>
                   <span>
                     <Upload className="mr-2 h-4 w-4" />
                     {uploading ? 'Uploading...' : `Upload ${documentTitle}`}
@@ -168,29 +200,25 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
                 accept="*/*"
                 onChange={handleFileUpload}
                 className="hidden"
-                disabled={uploading}
+                disabled={uploading || downloading}
               />
             </>
           )}
           {currentUrl && (
-            <a href={currentUrl} download className="w-full"> {/* Changed to <a> tag with download attribute */}
-              <Button
-                variant="outline"
-                disabled={uploading}
-                className="w-full"
-              >
-                <Download className="mr-2 h-4 w-4" /> Download {documentTitle}
-              </Button>
-            </a>
-
-            // The original "View Document" button logic is now handled by the <a> tag above.
-            // The delete button remains the same.
+            <Button
+              variant="outline"
+              onClick={handleDownload} // Use the new handleDownload function
+              disabled={uploading || downloading}
+              className="w-full"
+            >
+              <Download className="mr-2 h-4 w-4" /> {downloading ? 'Downloading...' : `Download ${documentTitle}`}
+            </Button>
           )}
           {currentUrl && !readOnly && documentType !== 'signed_contract' && (
             <Button
               variant="destructive"
               onClick={handleDeleteDocument}
-              disabled={uploading}
+              disabled={uploading || downloading}
               className="w-full"
             >
               <Trash2 className="mr-2 h-4 w-4" />

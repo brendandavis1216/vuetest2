@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { showSuccess, showError } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { FileStack, Eye, Search } from 'lucide-react';
+import { Eye, Search } from 'lucide-react'; // Removed FileStack
 import { Input } from '@/components/ui/input';
 import { useAdminEventNotifications } from '@/hooks/useAdminEventNotifications';
 
@@ -126,11 +126,7 @@ const AdminDashboard = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <div className="flex gap-4">
-          <Link to="/admin/event-documents">
-            <Button>
-              <FileStack className="mr-2 h-4 w-4" /> Manage Event Documents
-            </Button>
-          </Link>
+          {/* Removed the "Manage Event Documents" button */}
         </div>
       </div>
 

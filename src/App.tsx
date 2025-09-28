@@ -9,7 +9,6 @@ import LoginPage from "./pages/Login";
 import ProfilePage from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminEventDocuments from "./pages/AdminEventDocuments";
 import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminCalendar from "./pages/AdminCalendar";
 import AdminClientProfile from "./pages/AdminClientProfile";
@@ -64,7 +63,7 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         }
         // Allow access to specific admin paths for non-admins if they are explicitly linked,
         // but the pages themselves will handle permission checks.
-        const allowedAdminPaths = ['/admin/event-documents', '/admin/analytics', '/admin/calendar', '/admin/clients'];
+        const allowedAdminPaths = ['/admin/analytics', '/admin/calendar', '/admin/clients'];
         const isAllowedAdminPath = allowedAdminPaths.some(path => currentPath.startsWith(path));
 
         if (currentPath.startsWith('/admin') && !isAllowedAdminPath) {
@@ -105,12 +104,12 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/event-documents" element={<AdminEventDocuments />} />
+                {/* Removed AdminEventDocuments route */}
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
                 <Route path="/admin/calendar" element={<AdminCalendar />} />
                 <Route path="/admin/clients/:userId" element={<AdminClientProfile />} />
                 <Route path="/events/:eventId" element={<EventDetails />} />
-                <Route path="/events/:eventId/media" element={<EventMedia />} /> {/* New route */}
+                <Route path="/events/:eventId/media" element={<EventMedia />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

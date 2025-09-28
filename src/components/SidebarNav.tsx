@@ -3,7 +3,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, User, Shield, BarChart, CalendarDays, LogOut, Users, FileText } from 'lucide-react';
+import { Home, User, Shield, BarChart, CalendarDays, LogOut, Users } from 'lucide-react'; // Removed FileText
 import { cn } from '@/lib/utils';
 
 interface SidebarNavProps {
@@ -40,13 +40,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
       label: "Calendar",
       roles: ['admin'],
     },
-    {
-      to: "/admin/event-documents",
-      icon: FileText, // Using FileText for document management
-      label: "Manage Documents",
-      roles: ['admin'],
-    },
-    // Removed the "Manage Clients" link as it's now part of the Admin Dashboard
+    // Removed the "Manage Documents" link
   ];
 
   return (
@@ -54,7 +48,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
       {navItems.map((item) => {
         const Icon = item.icon;
         // Adjusted isActive logic: Admin Dashboard is active if on /admin or any admin sub-path
-        const isActive = item.to === location.pathname || (item.to === "/admin" && location.pathname.startsWith("/admin") && !["/admin/event-documents", "/admin/analytics", "/admin/calendar"].some(path => location.pathname.startsWith(path)));
+        const isActive = item.to === location.pathname || (item.to === "/admin" && location.pathname.startsWith("/admin") && !["/admin/analytics", "/admin/calendar"].some(path => location.pathname.startsWith(path)));
         
         if ((isAdmin && item.roles.includes('admin')) || (!isAdmin && item.roles.includes('client') && !item.to.startsWith('/admin'))) {
           return (

@@ -5,10 +5,11 @@ import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { showSuccess, showError } from '@/utils/toast';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // Import Link
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { FileStack } from 'lucide-react'; // Import new icon
 
 interface Profile {
   id: string;
@@ -131,7 +132,14 @@ const AdminDashboard = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <Link to="/admin/event-documents">
+          <Button>
+            <FileStack className="mr-2 h-4 w-4" /> Manage Event Documents
+          </Button>
+        </Link>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>All User Profiles</CardTitle>

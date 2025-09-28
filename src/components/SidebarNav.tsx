@@ -3,7 +3,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, User, Shield, BarChart, CalendarDays, LogOut, UserPlus } from 'lucide-react'; // Removed unused Users icon
+import { Home, User, Shield, BarChart, CalendarDays, LogOut, UserPlus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarNavProps {
@@ -74,8 +74,11 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
                     : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
               >
-                <Icon className="mr-2 h-4 w-4" />
-                {item.label}
+                {/* Explicitly wrap children in a fragment */}
+                <>
+                  <Icon className="mr-2 h-4 w-4" />
+                  {item.label}
+                </>
               </Button>
             </Link>
           );

@@ -40,8 +40,13 @@ const EventChecklist: React.FC<EventChecklistProps> = ({ event }) => {
       <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {checklistItems.map((item, index) => (
           <div key={index} className="flex items-center space-x-2">
-            <Checkbox id={`checklist-item-${index}`} checked={item.checked} disabled />
-            <Label htmlFor={`checklist-item-${index}`} className="text-base font-medium">
+            <Checkbox
+              id={`checklist-item-${index}`}
+              checked={item.checked}
+              disabled
+              className="data-[state=checked]:bg-green-500 data-[state=checked]:text-white" // Green background, white checkmark
+            />
+            <Label htmlFor={`checklist-item-${index}`} className="text-base font-medium text-white"> {/* White text */}
               {item.label}
             </Label>
           </div>

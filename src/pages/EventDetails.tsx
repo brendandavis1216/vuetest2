@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Button } => '@/components/ui/button';
 import { showError } from '@/utils/toast';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
@@ -54,8 +54,8 @@ const EventDetails = () => {
   }, [session, supabase]);
 
   const fetchEventDetails = useCallback(async () => {
-    if (!id || !session?.user.id) {
-      showError('Event ID or user session missing.');
+    if (!id) { // Removed session.user.id check here, RLS handles it
+      showError('Event ID missing.');
       navigate('/dashboard', { replace: true });
       return;
     }
@@ -65,24 +65,29 @@ const EventDetails = () => {
       .from('events')
       .select('*')
       .eq('id', id)
-      // Admins can view any event, clients can only view their own
-      .or(`user_id.eq.${session.user.id},is_admin.eq.true`) 
       .single();
 
     if (error) {
       console.error('Error fetching event details:', error.message);
       showError('Failed to load event details. You might not have access.');
-      navigate('/dashboard', { replace: true });
+      // Navigate based on admin status if possible, otherwise default to dashboard
+      navigate(isAdmin ? '/admin' : '/dashboard', { replace: true });
     } else if (data) {
       setEvent(data as Event);
     }
     setLoading(false);
-  }, [id, session, supabase, navigate]);
+  }, [id, supabase, navigate, isAdmin]); // Added isAdmin to dependencies
 
   useEffect(() => {
     checkAdminStatus();
-    fetchEventDetails();
-  }, [checkAdminStatus, fetchEventDetails]);
+  }, [checkAdminStatus]);
+
+  useEffect(() => {
+    // Only fetch event details once admin status is known
+    if (!loadingAdminStatus) {
+      fetchEventDetails();
+    }
+  }, [loadingAdminStatus, fetchEventDetails]);
 
   if (loading || loadingAdminStatus) {
     return (

@@ -5,11 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarDays } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Circle } from 'lucide-react';
 import { showError } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Calendar } from '@/components/ui/calendar';
-import { format } from 'date-fns';
+import { format, isSameMonth, isSameDay } from 'date-fns';
 
 interface Event {
   id: string;
@@ -27,7 +27,7 @@ const AdminCalendar = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [eventsOnSelectedDate, setEventsOnSelectedDate] = useState<Event[]>([]);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date()); // New state for current month
 
   const checkAdminStatus = useCallback(async () => {
     setLoadingAdminStatus(true);
@@ -79,17 +79,18 @@ const AdminCalendar = () => {
     }
   }, [isAdmin, loadingAdminStatus, navigate, fetchAllEvents]);
 
-  useEffect(() => {
-    if (selectedDate) {
-      const formattedSelectedDate = format(selectedDate, 'yyyy-MM-dd');
-      const filteredEvents = events.filter(event =>
-        format(new Date(event.event_date), 'yyyy-MM-dd') === formattedSelectedDate
-      );
-      setEventsOnSelectedDate(filteredEvents);
-    } else {
-      setEventsOnSelectedDate([]);
+  const eventsInCurrentMonth = events.filter(event =>
+    isSameMonth(new Date(event.event_date), currentMonth)
+  ).sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+
+  const groupedEvents = eventsInCurrentMonth.reduce((acc, event) => {
+    const dateKey = format(new Date(event.event_date), 'yyyy-MM-dd');
+    if (!acc[dateKey]) {
+      acc[dateKey] = [];
     }
-  }, [selectedDate, events]);
+    acc[dateKey].push(event);
+    return acc;
+  }, {} as Record<string, Event[]>);
 
   const modifiers = events.reduce((acc: { [key: string]: Date[] }, event) => {
     const date = new Date(event.event_date);
@@ -126,11 +127,13 @@ const AdminCalendar = () => {
             <CardTitle>Event Overview</CardTitle>
             <CardDescription>Select a date to view events.</CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
+          <CardContent className="flex flex-col items-center">
             <Calendar
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
+              month={currentMonth} // Control the displayed month
+              onMonthChange={setCurrentMonth} // Update currentMonth when navigating
               className="rounded-md border"
               modifiers={modifiers}
               modifiersClassNames={{
@@ -138,28 +141,52 @@ const AdminCalendar = () => {
                 eventYellow: 'rdp-day_eventYellow',
               }}
             />
+            <div className="mt-4 flex flex-col space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Circle className="h-3 w-3 text-green-500 fill-green-500" />
+                <span>Contract Signed</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Circle className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+                <span>Contract Pending</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Events on {selectedDate ? format(selectedDate, 'PPP') : 'Selected Date'}</CardTitle>
-            <CardDescription>Details for events scheduled on the chosen date.</CardDescription>
+            <CardTitle>Events in {format(currentMonth, 'MMMM yyyy')}</CardTitle>
+            <CardDescription>All events scheduled for this month.</CardDescription>
           </CardHeader>
           <CardContent>
-            {eventsOnSelectedDate.length === 0 ? (
-              <p className="text-muted-foreground">No events scheduled for this date.</p>
+            {eventsInCurrentMonth.length === 0 ? (
+              <p className="text-muted-foreground">No events scheduled for this month.</p>
             ) : (
-              <div className="space-y-4">
-                {eventsOnSelectedDate.map(event => (
-                  <div key={event.id} className="border p-4 rounded-md shadow-sm">
-                    <h3 className="font-semibold text-lg">{event.event_name || 'Untitled Event'}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Status: {event.signed_contract_url ? 'Contract Signed' : 'Contract Pending'}
-                    </p>
-                    <Button variant="link" className="p-0 h-auto mt-2" onClick={() => navigate(`/events/${event.id}`)}>
-                      View Event Details
-                    </Button>
+              <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                {Object.entries(groupedEvents).map(([dateKey, dailyEvents]) => (
+                  <div key={dateKey} className="border-b pb-2 last:border-b-0">
+                    <h3 className="font-semibold text-md mb-2">
+                      {format(new Date(dateKey), 'PPP')}
+                      {isSameDay(new Date(dateKey), selectedDate || new Date()) && (
+                        <span className="ml-2 text-xs text-primary-foreground bg-primary px-2 py-1 rounded-full">Selected</span>
+                      )}
+                    </h3>
+                    <div className="space-y-2">
+                      {dailyEvents.map(event => (
+                        <div key={event.id} className="border p-3 rounded-md shadow-sm flex justify-between items-center">
+                          <div>
+                            <h4 className="font-medium text-base">{event.event_name || 'Untitled Event'}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              Status: {event.signed_contract_url ? 'Contract Signed' : 'Contract Pending'}
+                            </p>
+                          </div>
+                          <Button variant="link" className="p-0 h-auto" onClick={() => navigate(`/events/${event.id}`)}>
+                            View Details
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>

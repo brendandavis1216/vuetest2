@@ -97,6 +97,7 @@ const AdminDashboard = () => {
       } else if (data) {
         const filteredProfiles = (data as Profile[]).filter(profile => profile.role !== 'admin');
         setProfiles(filteredProfiles);
+        console.log('Fetched profiles:', filteredProfiles); // Debug log
         showSuccess('All profiles loaded successfully!');
       }
     } catch (error: any) {
@@ -117,6 +118,7 @@ const AdminDashboard = () => {
         setChapters([]);
       } else if (data) {
         setChapters(data as Chapter[]);
+        console.log('Fetched chapters:', data); // Debug log
       }
     } catch (error: any) {
       console.error('Unexpected error calling edge function:', error.message);
@@ -255,6 +257,7 @@ const AdminDashboard = () => {
                     <TableCell>{profile.fraternity || 'N/A'}</TableCell>
                     <TableCell>{profile.email}</TableCell>
                     <TableCell className="text-center">
+                      {console.log(`Profile ID: ${profile.id}, Chapter ID: ${profile.chapter_id}, Select Value: ${profile.chapter_id || 'unassign-chapter'}`)} {/* Debug log */}
                       <Select
                         value={profile.chapter_id || 'unassign-chapter'}
                         onValueChange={(value) => handleChapterAssignment(profile.id, value === 'unassign-chapter' ? null : value)}

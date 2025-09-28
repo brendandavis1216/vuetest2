@@ -9,7 +9,7 @@ import { ArrowLeft, User, CalendarDays, DollarSign, FileText, CheckCircle2 } fro
 import { showError } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import EditEventDialog from '@/components/EditEventDialog';
 
 interface Profile {
@@ -48,7 +48,8 @@ const AdminClientProfile = () => {
   const navigate = useNavigate();
   const { supabase, session } = useSupabase();
   const [clientProfile, setClientProfile] = useState<Profile | null>(null);
-  const [clientEvents, setClientEvents] = useState<Event[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]); // Separate state for upcoming
+  const [pastEvents, setPastEvents] = useState<Event[]>([]); // Separate state for past
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingEvents, setLoadingEvents] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -109,7 +110,17 @@ const AdminClientProfile = () => {
       if (eventsError) {
         throw new Error(eventsError.message);
       }
-      setClientEvents(eventsData as Event[]);
+
+      const now = new Date();
+      const upcoming = (eventsData as Event[]).filter(event => !isPast(new Date(event.event_date), { inclusive: true }));
+      const past = (eventsData as Event[]).filter(event => isPast(new Date(event.event_date), { inclusive: false }));
+
+      // Sort upcoming ascending, past descending
+      upcoming.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+      past.sort((a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime());
+
+      setUpcomingEvents(upcoming);
+      setPastEvents(past);
 
     } catch (error: any) {
       console.error('Error fetching client data:', error.message);
@@ -233,52 +244,118 @@ const AdminClientProfile = () => {
       </Card>
 
       <h2 className="text-3xl font-bold mt-8 mb-4 text-foreground">Client's Events</h2>
-      <Card>
-        <CardHeader>
-          <CardTitle>All Events by This Client</CardTitle>
-          <CardDescription>A list of all events created by {clientProfile.school} {clientProfile.fraternity}.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {clientEvents.length === 0 ? (
-            <p className="text-muted-foreground">This client has not created any events yet.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Event Name/Theme</TableHead>
-                    <TableHead>Event Date</TableHead>
-                    <TableHead>Artist Name</TableHead>
-                    <TableHead>Budget</TableHead>
-                    <TableHead>Completion</TableHead>
-                    <TableHead className="text-center min-w-[120px]">View Documents</TableHead>
-                    <TableHead className="text-center min-w-[80px]">Edit</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {clientEvents.map((event) => (
-                    <TableRow key={event.id}>
-                      <TableCell className="font-medium">{event.event_name || 'Untitled Event'}</TableCell>
-                      <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
-                      <TableCell>{event.artist_name || 'N/A'}</TableCell>
-                      <TableCell>${event.budget.toLocaleString()}</TableCell>
-                      <TableCell>{calculateCompletionPercentage(event)}%</TableCell>
-                      <TableCell className="text-center">
-                        <Button variant="outline" size="sm" onClick={() => navigate(`/events/${event.id}`)}>
-                          View Documents
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <EditEventDialog event={event} onEventUpdated={fetchClientData} />
-                      </TableCell>
+      
+      <div className="grid grid-cols-1 gap-6 mb-8">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold">Upcoming Events</CardTitle>
+            <CardDescription>Events scheduled for this client in the future.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingEvents ? (
+              <div className="space-y-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : upcomingEvents.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">This client has no upcoming events.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[150px]">Event Name/Theme</TableHead>
+                      <TableHead className="min-w-[120px]">Event Date</TableHead>
+                      <TableHead className="min-w-[120px]">Artist Name</TableHead>
+                      <TableHead className="min-w-[100px]">Budget</TableHead>
+                      <TableHead className="min-w-[100px]">Completion</TableHead>
+                      <TableHead className="text-center min-w-[120px]">View Documents</TableHead>
+                      <TableHead className="text-center min-w-[80px]">Edit</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {upcomingEvents.map((event) => (
+                      <TableRow key={event.id}>
+                        <TableCell className="font-medium">{event.event_name || 'Untitled Event'}</TableCell>
+                        <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
+                        <TableCell>{event.artist_name || 'N/A'}</TableCell>
+                        <TableCell>${event.budget.toLocaleString()}</TableCell>
+                        <TableCell>{calculateCompletionPercentage(event)}%</TableCell>
+                        <TableCell className="text-center">
+                          <Link to={`/events/${event.id}`}>
+                            <Button variant="outline" size="sm">
+                              View Documents
+                            </Button>
+                          </Link>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <EditEventDialog event={event} onEventUpdated={fetchClientData} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6">
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl font-semibold">Past Events</CardTitle>
+            <CardDescription>Events that have already occurred for this client.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingEvents ? (
+              <div className="space-y-4">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : pastEvents.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">This client has no past events.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="min-w-[150px]">Event Name/Theme</TableHead>
+                      <TableHead className="min-w-[120px]">Event Date</TableHead>
+                      <TableHead className="min-w-[120px]">Artist Name</TableHead>
+                      <TableHead className="min-w-[100px]">Budget</TableHead>
+                      <TableHead className="min-w-[100px]">Completion</TableHead>
+                      <TableHead className="text-center min-w-[120px]">View Documents</TableHead>
+                      <TableHead className="text-center min-w-[80px]">Edit</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {pastEvents.map((event) => (
+                      <TableRow key={event.id}>
+                        <TableCell className="font-medium">{event.event_name || 'Untitled Event'}</TableCell>
+                        <TableCell>{format(new Date(event.event_date), 'PPP')}</TableCell>
+                        <TableCell>{event.artist_name || 'N/A'}</TableCell>
+                        <TableCell>${event.budget.toLocaleString()}</TableCell>
+                        <TableCell>{calculateCompletionPercentage(event)}%</TableCell>
+                        <TableCell className="text-center">
+                          <Link to={`/events/${event.id}`}>
+                            <Button variant="outline" size="sm">
+                              View Documents
+                            </Button>
+                          </Link>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <EditEventDialog event={event} onEventUpdated={fetchClientData} />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

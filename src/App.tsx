@@ -10,6 +10,7 @@ import ProfilePage from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminEventDocuments from "./pages/AdminEventDocuments";
+import AdminAnalytics from "./pages/AdminAnalytics"; // Import the new AdminAnalytics page
 import EventDetails from "./pages/EventDetails";
 import MainLayout from "./components/MainLayout";
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
@@ -63,7 +64,7 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           navigate('/dashboard', { replace: true });
         }
         // If a non-admin somehow lands on /admin or /admin/event-documents, redirect them to /dashboard
-        if (currentPath.startsWith('/admin')) {
+        if (currentPath.startsWith('/admin') && !currentPath.startsWith('/admin/event-documents') && !currentPath.startsWith('/admin/analytics')) {
           navigate('/dashboard', { replace: true });
         }
       }
@@ -104,6 +105,7 @@ const App = () => (
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/event-documents" element={<AdminEventDocuments />} />
+                <Route path="/admin/analytics" element={<AdminAnalytics />} /> {/* New Admin Analytics Route */}
                 <Route path="/events/:id" element={<EventDetails />} />
               </Route>
 

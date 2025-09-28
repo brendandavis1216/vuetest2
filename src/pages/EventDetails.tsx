@@ -103,7 +103,9 @@ const EventDetails = () => {
         <h2 className="text-2xl font-bold mb-4 text-foreground">Event Not Found</h2>
         <p className="text-muted-foreground mb-6">The event you are looking for does not exist or you do not have permission to view it.</p>
         <Button onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
+          <>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
+          </>
         </Button>
       </div>
     );
@@ -113,7 +115,9 @@ const EventDetails = () => {
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
         <Button variant="outline" onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
+          <>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
+          </>
         </Button>
         <h1 className="text-4xl font-bold text-foreground text-center sm:text-left">Event: {event.event_name || 'Untitled Event'}</h1>
       </div>
@@ -154,7 +158,9 @@ const EventDetails = () => {
         <h2 className="text-3xl font-bold text-foreground">Event Documents</h2>
         <Link to={`/events/${event.id}/media`}>
           <Button variant="outline">
-            <Image className="mr-2 h-4 w-4" /> View/Add Media
+            <>
+              <Image className="mr-2 h-4 w-4" /> View/Add Media
+            </>
           </Button>
         </Link>
       </div>

@@ -175,7 +175,9 @@ const AdminClientProfile = () => {
         <h2 className="text-2xl font-bold mb-4 text-foreground">Client Not Found</h2>
         <p className="text-muted-foreground mb-6">The client profile you are looking for does not exist or you do not have permission to view it.</p>
         <Button onClick={() => navigate('/admin')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Admin Dashboard
+          <>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Admin Dashboard
+          </>
         </Button>
       </div>
     );
@@ -185,7 +187,9 @@ const AdminClientProfile = () => {
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
         <Button variant="outline" onClick={() => navigate('/admin')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Admin Dashboard
+          <>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Admin Dashboard
+          </>
         </Button>
         <h1 className="text-4xl font-bold text-foreground text-center sm:text-left">
           Client Profile: {clientProfile.school} {clientProfile.fraternity}

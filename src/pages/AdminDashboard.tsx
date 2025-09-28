@@ -64,18 +64,21 @@ const AdminDashboard = () => {
 
   const fetchAllProfiles = useCallback(async () => {
     setLoadingProfiles(true);
+    // Changed 'auth_users:id(email)' to 'users(email)' for better Supabase relationship inference
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, avatar_url, role, auth_users:id(email)');
+      .select('id, first_name, last_name, avatar_url, role, users(email)');
 
     if (error) {
       console.error('Error fetching all profiles:', error.message);
       showError('Failed to load all user profiles.');
       setProfiles([]);
     } else if (data) {
+      console.log("Fetched profiles data:", data); // Log the raw data for debugging
       const profilesWithEmail = data.map(p => ({
         ...p,
-        email: p.auth_users?.email || 'N/A'
+        // Access email from the 'users' object
+        email: (p.users as { email: string } | null)?.email || 'N/A'
       }));
       setProfiles(profilesWithEmail);
       showSuccess('All profiles loaded successfully!');

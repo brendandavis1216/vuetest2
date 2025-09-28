@@ -77,13 +77,20 @@ const EventDetails = () => {
     );
   }
 
+  // Placeholder function for viewing documents
+  const handleViewDocument = (documentType: string) => {
+    console.log(`Viewing ${documentType} for event ${event.id}`);
+    // In a real application, this would open a modal, navigate to a viewer, or download the file.
+    showError(`Viewing functionality for ${documentType} is not yet implemented.`);
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between mb-6">
         <Button variant="outline" onClick={() => navigate('/dashboard')}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
         </Button>
-        <h1 className="text-3xl font-bold">Event: {event.event_name || 'Untitled Event'}</h1> {/* Display event name */}
+        <h1 className="text-3xl font-bold">Event: {event.event_name || 'Untitled Event'}</h1>
       </div>
 
       <Card>
@@ -121,8 +128,8 @@ const EventDetails = () => {
             <CardTitle>Renders</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">No renders uploaded yet.</p>
-            <Button className="mt-4">Upload Renders</Button>
+            <p className="text-muted-foreground">No renders available yet.</p>
+            <Button variant="outline" className="mt-4" onClick={() => handleViewDocument('Renders')}>View Renders</Button>
           </CardContent>
         </Card>
 
@@ -131,8 +138,8 @@ const EventDetails = () => {
             <CardTitle>Contract</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">No contract uploaded yet.</p>
-            <Button className="mt-4">Upload Contract</Button>
+            <p className="text-muted-foreground">No contract available yet.</p>
+            <Button variant="outline" className="mt-4" onClick={() => handleViewDocument('Contract')}>View Contract</Button>
           </CardContent>
         </Card>
 
@@ -141,8 +148,8 @@ const EventDetails = () => {
             <CardTitle>Invoice</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">No invoice uploaded yet.</p>
-            <Button className="mt-4">Upload Invoice</Button>
+            <p className="text-muted-foreground">No invoice available yet.</p>
+            <Button variant="outline" className="mt-4" onClick={() => handleViewDocument('Invoice')}>View Invoice</Button>
           </CardContent>
         </Card>
 
@@ -151,8 +158,8 @@ const EventDetails = () => {
             <CardTitle>Equipment List</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">No equipment list uploaded yet.</p>
-            <Button className="mt-4">Upload Equipment List</Button>
+            <p className="text-muted-foreground">No equipment list available yet.</p>
+            <Button variant="outline" className="mt-4" onClick={() => handleViewDocument('Equipment List')}>View Equipment List</Button>
           </CardContent>
         </Card>
 
@@ -161,8 +168,8 @@ const EventDetails = () => {
             <CardTitle>Other Documents</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">No other documents uploaded yet.</p>
-            <Button className="mt-4">Upload Document</Button>
+            <p className="text-muted-foreground">No other documents available yet.</p>
+            <Button variant="outline" className="mt-4" onClick={() => handleViewDocument('Other Documents')}>View Documents</Button>
           </CardContent>
         </Card>
       </div>

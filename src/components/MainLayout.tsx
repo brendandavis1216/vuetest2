@@ -49,7 +49,7 @@ const MainLayout: React.FC = () => {
       <header className="bg-primary text-primary-foreground p-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
           <Link to={isAdmin ? "/admin" : "/dashboard"} className="text-2xl font-bold">
-            My App
+            VUE
           </Link>
           <nav className="flex items-center space-x-4">
             {!isAdmin && ( // Only show Dashboard link if not an admin

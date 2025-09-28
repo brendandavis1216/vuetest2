@@ -46,7 +46,7 @@ serve(async (req) => {
     const csvText = await csvFile.text();
     const records = await parse(csvText, {
       skipFirstRow: true, // Assuming the first row is headers
-      columns: ['school', 'fraternity', 'contact_email', 'contact_name', 'status', 'notes'],
+      columns: ['school', 'fraternity', 'contact_phone', 'instagram_handle', 'contact_name', 'status', 'notes'], // Updated columns
     });
 
     const supabaseServiceRoleClient = createClient(
@@ -59,16 +59,16 @@ serve(async (req) => {
     const createdBy = supabaseClient.auth.getUser().then(res => res.data.user?.id); // Get user ID for created_by
 
     for (const record of records) {
-      const { school, fraternity, contact_email, contact_name, status, notes } = record as Record<string, string>;
+      const { school, fraternity, contact_phone, instagram_handle, contact_name, status, notes } = record as Record<string, string>; // Destructure new fields
 
-      if (!school || !fraternity || !contact_email) {
-        errors.push({ record, message: 'Missing required fields: school, fraternity, or contact_email.' });
+      if (!school || !fraternity || !contact_phone) { // Validate required fields
+        errors.push({ record, message: 'Missing required fields: school, fraternity, or contact_phone.' });
         continue;
       }
 
-      // Basic email validation
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact_email)) {
-        errors.push({ record, message: 'Invalid contact_email format.' });
+      // Basic phone number validation (simple regex for digits and optional plus sign)
+      if (!/^\+?[0-9\s-()]{7,20}$/.test(contact_phone)) {
+        errors.push({ record, message: 'Invalid contact_phone format.' });
         continue;
       }
 
@@ -79,7 +79,8 @@ serve(async (req) => {
       leadsToInsert.push({
         school,
         fraternity,
-        contact_email,
+        contact_phone, // Use new field
+        instagram_handle: instagram_handle || null, // Use new field
         contact_name: contact_name || null,
         status: finalStatus,
         notes: notes || null,

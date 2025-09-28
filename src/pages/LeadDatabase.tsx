@@ -23,7 +23,8 @@ interface Lead {
   created_at: string;
   school: string;
   fraternity: string;
-  contact_email: string;
+  contact_phone: string; // Changed from contact_email
+  instagram_handle: string | null; // New field
   contact_name: string | null;
   status: 'new' | 'contacted' | 'converted' | 'rejected';
   notes: string | null;
@@ -33,7 +34,10 @@ interface Lead {
 const formSchema = z.object({
   school: z.string().min(1, 'School is required.'),
   fraternity: z.string().min(1, 'Fraternity is required.'),
-  contact_email: z.string().email('Invalid email address.'),
+  contact_phone: z.string().regex(/^\+?[0-9\s-()]{7,20}$/, { // Updated validation for phone number
+    message: 'Invalid phone number format.',
+  }),
+  instagram_handle: z.string().optional(), // New field
   contact_name: z.string().optional(),
   status: z.enum(['new', 'contacted', 'converted', 'rejected']).default('new'),
   notes: z.string().optional(),
@@ -59,7 +63,8 @@ const LeadDatabase = () => {
     defaultValues: {
       school: '',
       fraternity: '',
-      contact_email: '',
+      contact_phone: '', // Changed default
+      instagram_handle: '', // New default
       contact_name: '',
       status: 'new',
       notes: '',
@@ -123,7 +128,8 @@ const LeadDatabase = () => {
     const results = leads.filter(lead =>
       lead.school.toLowerCase().includes(lowerCaseQuery) ||
       lead.fraternity.toLowerCase().includes(lowerCaseQuery) ||
-      lead.contact_email.toLowerCase().includes(lowerCaseQuery) ||
+      lead.contact_phone.toLowerCase().includes(lowerCaseQuery) || // Updated search field
+      (lead.instagram_handle && lead.instagram_handle.toLowerCase().includes(lowerCaseQuery)) || // New search field
       (lead.contact_name && lead.contact_name.toLowerCase().includes(lowerCaseQuery)) ||
       lead.status.toLowerCase().includes(lowerCaseQuery)
     );
@@ -247,7 +253,7 @@ const LeadDatabase = () => {
               <DialogHeader>
                 <DialogTitle>Import Leads from CSV</DialogTitle>
                 <DialogDescription>
-                  Upload a CSV file containing your leads. The file should have columns for 'school', 'fraternity', 'contact_email', 'contact_name' (optional), 'status' (optional), and 'notes' (optional).
+                  Upload a CSV file containing your leads. The file should have columns for 'school', 'fraternity', 'contact_phone', 'instagram_handle' (optional), 'contact_name' (optional), 'status' (optional), and 'notes' (optional).
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
@@ -332,12 +338,25 @@ const LeadDatabase = () => {
                   />
                   <FormField
                     control={form.control}
-                    name="contact_email"
+                    name="contact_phone" // Changed field name
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Contact Email</FormLabel>
+                        <FormLabel>Contact Phone Number</FormLabel> {/* Changed label */}
                         <FormControl>
-                          <Input type="email" placeholder="e.g., john.doe@example.com" {...field} />
+                          <Input type="tel" placeholder="e.g., +15551234567" {...field} /> {/* Changed type and placeholder */}
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="instagram_handle" // New field
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Instagram Handle (Optional)</FormLabel> {/* New label */}
+                        <FormControl>
+                          <Input placeholder="e.g., @johndoe" {...field} /> {/* New placeholder */}
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -398,7 +417,7 @@ const LeadDatabase = () => {
           <div className="relative mb-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search leads by school, fraternity, email, or status..."
+              placeholder="Search leads by school, fraternity, phone, Instagram, or status..." // Updated placeholder
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -410,7 +429,8 @@ const LeadDatabase = () => {
                 <TableRow>
                   <TableHead className="min-w-[150px]">School</TableHead>
                   <TableHead className="min-w-[150px]">Fraternity</TableHead>
-                  <TableHead className="min-w-[200px]">Email</TableHead>
+                  <TableHead className="min-w-[200px]">Contact Phone</TableHead> {/* Changed header */}
+                  <TableHead className="min-w-[150px]">Instagram Handle</TableHead> {/* New header */}
                   <TableHead className="min-w-[150px]">Contact Name</TableHead>
                   <TableHead className="min-w-[120px]">Status</TableHead>
                   <TableHead className="min-w-[180px]">Notes</TableHead>
@@ -421,13 +441,13 @@ const LeadDatabase = () => {
               <TableBody>
                 {filteredLeads.length === 0 && searchQuery !== '' ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-4">
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-4"> {/* Updated colspan */}
                       No leads found matching your search.
                     </TableCell>
                   </TableRow>
                 ) : filteredLeads.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-4">
+                    <TableCell colSpan={9} className="text-center text-muted-foreground py-4"> {/* Updated colspan */}
                       No leads available. Click "Add New Lead" or "Import CSV" to get started!
                     </TableCell>
                   </TableRow>
@@ -436,7 +456,8 @@ const LeadDatabase = () => {
                     <TableRow key={lead.id}>
                       <TableCell className="font-medium">{lead.school}</TableCell>
                       <TableCell>{lead.fraternity}</TableCell>
-                      <TableCell>{lead.contact_email}</TableCell>
+                      <TableCell>{lead.contact_phone}</TableCell> {/* Changed cell content */}
+                      <TableCell>{lead.instagram_handle || 'N/A'}</TableCell> {/* New cell content */}
                       <TableCell>{lead.contact_name || 'N/A'}</TableCell>
                       <TableCell>
                         <Select

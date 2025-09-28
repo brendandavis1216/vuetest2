@@ -42,9 +42,8 @@ const ImportLeadsDialog: React.FC<ImportLeadsDialogProps> = ({ onLeadsImported }
 
       const { data, error } = await supabase.functions.invoke('import-leads', {
         body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        // Removed 'Content-Type': 'multipart/form-data' header
+        // The browser will automatically set the correct Content-Type header with the boundary.
       });
 
       if (error) {

@@ -94,10 +94,9 @@ const LeadTable: React.FC<LeadTableProps> = ({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="new">New</SelectItem>
                         <SelectItem value="contacted">Contacted</SelectItem>
-                        <SelectItem value="converted">Converted</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="no_answer">No Answer</SelectItem>
+                        <SelectItem value="declined">Declined</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>

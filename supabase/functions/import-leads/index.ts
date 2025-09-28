@@ -81,9 +81,9 @@ serve(async (req) => {
         continue;
       }
 
-      // Validate status if provided, otherwise default to 'new'
-      const validStatuses = ['new', 'contacted', 'converted', 'rejected'];
-      const finalStatus = status && validStatuses.includes(status.toLowerCase()) ? status.toLowerCase() : 'new';
+      // Validate status if provided, otherwise default to 'contacted'
+      const validStatuses = ['contacted', 'no_answer', 'declined']; // Updated valid statuses
+      const finalStatus = status && validStatuses.includes(status.toLowerCase()) ? status.toLowerCase() : 'contacted'; // New default
 
       leadsToInsert.push({
         school,

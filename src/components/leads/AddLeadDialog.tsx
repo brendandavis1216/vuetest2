@@ -22,7 +22,7 @@ const formSchema = z.object({
   }),
   instagram_handle: z.string().optional(),
   contact_name: z.string().optional(),
-  status: z.enum(['new', 'contacted', 'converted', 'rejected']).default('new'),
+  status: z.enum(['contacted', 'no_answer', 'declined']).default('contacted'), // Updated status enum and default
   notes: z.string().optional(),
 });
 
@@ -42,7 +42,7 @@ const AddLeadDialog: React.FC<AddLeadDialogProps> = ({ onLeadAdded }) => {
       contact_phone: '',
       instagram_handle: '',
       contact_name: '',
-      status: 'new',
+      status: 'contacted', // New default status
       notes: '',
     },
   });
@@ -164,10 +164,9 @@ const AddLeadDialog: React.FC<AddLeadDialogProps> = ({ onLeadAdded }) => {
                         <SelectValue placeholder="Select a status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="new">New</SelectItem>
                         <SelectItem value="contacted">Contacted</SelectItem>
-                        <SelectItem value="converted">Converted</SelectItem>
-                        <SelectItem value="rejected">Rejected</SelectItem>
+                        <SelectItem value="no_answer">No Answer</SelectItem>
+                        <SelectItem value="declined">Declined</SelectItem>
                       </SelectContent>
                     </Select>
                   </FormControl>

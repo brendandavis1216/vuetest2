@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } => '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { showError } from '@/utils/toast';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
@@ -54,7 +54,7 @@ const EventDetails = () => {
   }, [session, supabase]);
 
   const fetchEventDetails = useCallback(async () => {
-    if (!id) { // Removed session.user.id check here, RLS handles it
+    if (!id) {
       showError('Event ID missing.');
       navigate('/dashboard', { replace: true });
       return;
@@ -70,20 +70,18 @@ const EventDetails = () => {
     if (error) {
       console.error('Error fetching event details:', error.message);
       showError('Failed to load event details. You might not have access.');
-      // Navigate based on admin status if possible, otherwise default to dashboard
       navigate(isAdmin ? '/admin' : '/dashboard', { replace: true });
     } else if (data) {
       setEvent(data as Event);
     }
     setLoading(false);
-  }, [id, supabase, navigate, isAdmin]); // Added isAdmin to dependencies
+  }, [id, supabase, navigate, isAdmin]);
 
   useEffect(() => {
     checkAdminStatus();
   }, [checkAdminStatus]);
 
   useEffect(() => {
-    // Only fetch event details once admin status is known
     if (!loadingAdminStatus) {
       fetchEventDetails();
     }
@@ -109,7 +107,6 @@ const EventDetails = () => {
     );
   }
 
-  // Function to handle viewing documents
   const handleViewDocument = (url: string | null, documentType: string) => {
     if (url) {
       window.open(url, '_blank');

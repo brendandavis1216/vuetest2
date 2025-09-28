@@ -166,38 +166,28 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
         throw new Error('No data received for download.');
       }
 
+      // Create a Blob with the correct type
       let finalBlob = blobData;
-      // Explicitly set content type for PDF if it's not already correct
+      // For PDFs, ensure the type is application/pdf
       if (fileExtension === 'pdf' && blobData.type !== 'application/pdf') {
         finalBlob = new Blob([blobData], { type: 'application/pdf' });
       }
 
       const objectUrl = window.URL.createObjectURL(finalBlob);
 
-      if (fileExtension === 'pdf') {
-        // Use a temporary anchor tag to open PDF in a new tab
-        const a = document.createElement('a');
-        a.href = objectUrl;
-        a.target = '_blank'; // Open in a new tab
-        a.rel = 'noopener noreferrer'; // Security best practice
-        document.body.appendChild(a);
-        a.click();
-        a.remove(); // Clean up the temporary anchor
-        showSuccess(`${documentTitle} opened in a new tab!`);
-      } else {
-        // For other file types, trigger download
-        const a = document.createElement('a');
-        a.href = objectUrl;
-        a.download = filePathInBucket.split('/').pop() || `${documentType}-document`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        showSuccess(`${documentTitle} downloaded successfully!`);
-      }
+      // Always trigger a download for all file types
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filePathInBucket.split('/').pop() || `${documentType}-document`; // Suggest a filename
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      showSuccess(`${documentTitle} downloaded successfully!`);
+      
       window.URL.revokeObjectURL(objectUrl); // Revoke the URL after use
     } catch (error: any) {
       console.error(`[${documentTitle} Action] Error:`, error);
-      showError(`Failed to perform action on ${documentTitle}: ${error.message}`);
+      showError(`Failed to download ${documentTitle}: ${error.message}`);
     } finally {
       setDownloading(false);
     }
@@ -250,7 +240,7 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
               disabled={uploading || downloading}
               className="w-full"
             >
-              <Download className="mr-2 h-4 w-4" /> {downloading ? 'Processing...' : `View/Download ${documentTitle}`}
+              <Download className="mr-2 h-4 w-4" /> {downloading ? 'Processing...' : `Download ${documentTitle}`}
             </Button>
           )}
           {currentUrl && !readOnly && documentType !== 'signed_contract' && (

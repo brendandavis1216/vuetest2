@@ -23,13 +23,16 @@ const AdminDashboard = () => {
   const { supabase, session } = useSupabase();
   const navigate = useNavigate();
   const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingAdminStatus, setLoadingAdminStatus] = useState(true); // New state for admin status loading
+  const [loadingProfiles, setLoadingProfiles] = useState(false); // Renamed original loading state
   const [isAdmin, setIsAdmin] = useState(false);
   const [isUpdatingRole, setIsUpdatingRole] = useState<string | null>(null); // Stores userId being updated
 
   const checkAdminStatus = useCallback(async () => {
+    setLoadingAdminStatus(true); // Start loading admin status
     if (!session) {
       setIsAdmin(false);
+      setLoadingAdminStatus(false);
       return;
     }
     const { data, error } = await supabase.rpc('is_admin');
@@ -40,10 +43,11 @@ const AdminDashboard = () => {
     } else {
       setIsAdmin(data);
     }
+    setLoadingAdminStatus(false); // End loading admin status
   }, [session, supabase]);
 
   const fetchAllProfiles = useCallback(async () => {
-    setLoading(true);
+    setLoadingProfiles(true); // Start loading profiles
     const { data, error } = await supabase
       .from('profiles')
       .select('id, first_name, last_name, avatar_url, role, auth_users:id(email)'); // Join with auth.users for email
@@ -60,7 +64,7 @@ const AdminDashboard = () => {
       setProfiles(profilesWithEmail);
       showSuccess('All profiles loaded successfully!');
     }
-    setLoading(false);
+    setLoadingProfiles(false); // End loading profiles
   }, [supabase]);
 
   useEffect(() => {
@@ -68,13 +72,15 @@ const AdminDashboard = () => {
   }, [checkAdminStatus]);
 
   useEffect(() => {
-    if (!loading && !isAdmin) {
-      showError('You do not have administrative access.');
-      navigate('/dashboard', { replace: true }); // Redirect non-admins
-    } else if (isAdmin) {
-      fetchAllProfiles();
+    if (!loadingAdminStatus) { // Only act after admin status is determined
+      if (!isAdmin) {
+        showError('You do not have administrative access.');
+        navigate('/dashboard', { replace: true }); // Redirect non-admins
+      } else {
+        fetchAllProfiles(); // Fetch profiles only if admin
+      }
     }
-  }, [isAdmin, loading, navigate, fetchAllProfiles]);
+  }, [isAdmin, loadingAdminStatus, navigate, fetchAllProfiles]);
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     setIsUpdatingRole(userId);
@@ -104,10 +110,21 @@ const AdminDashboard = () => {
     }
   };
 
-  if (loading || !isAdmin) {
+  if (loadingAdminStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>{loading ? 'Loading admin status...' : 'Redirecting...'}</p>
+        <p>Loading admin status...</p>
+      </div>
+    );
+  }
+
+  // If we reach here, loadingAdminStatus is false.
+  // If isAdmin is false, the useEffect above would have redirected.
+  // So, if we are here, isAdmin must be true.
+  if (loadingProfiles) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading user profiles...</p>
       </div>
     );
   }
@@ -120,7 +137,7 @@ const AdminDashboard = () => {
           <CardTitle>All User Profiles</CardTitle>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {loadingProfiles ? ( // Use loadingProfiles here
             <div className="space-y-4">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />

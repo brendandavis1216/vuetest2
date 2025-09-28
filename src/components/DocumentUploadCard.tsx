@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Import useEffect
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -28,6 +28,15 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
   const [uploading, setUploading] = useState(false);
 
   const documentTitle = documentType.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+
+  // Log the currentUrl when it changes for debugging
+  useEffect(() => {
+    if (currentUrl) {
+      console.log(`[${documentTitle}] Current document URL:`, currentUrl);
+    } else {
+      console.log(`[${documentTitle}] No document URL available.`);
+    }
+  }, [currentUrl, documentTitle]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (readOnly || !session?.user.id || !event.target.files || event.target.files.length === 0) {

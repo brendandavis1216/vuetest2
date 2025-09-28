@@ -12,8 +12,8 @@ import { User } from 'lucide-react';
 
 interface Profile {
   id: string;
-  first_name: string | null;
-  last_name: string | null;
+  school: string | null; // Changed from first_name
+  fraternity: string | null; // Changed from last_name
   avatar_url: string | null;
   role: string;
 }
@@ -21,8 +21,8 @@ interface Profile {
 const ProfilePage = () => {
   const { supabase, session } = useSupabase();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [school, setSchool] = useState(''); // Changed from firstName
+  const [fraternity, setFraternity] = useState(''); // Changed from lastName
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -33,7 +33,7 @@ const ProfilePage = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('profiles')
-      .select('first_name, last_name, avatar_url, role')
+      .select('school, fraternity, avatar_url, role') // Select new fields
       .eq('id', session.user.id)
       .single();
 
@@ -42,8 +42,8 @@ const ProfilePage = () => {
       showError('Failed to load profile.');
     } else if (data) {
       setProfile(data);
-      setFirstName(data.first_name || '');
-      setLastName(data.last_name || '');
+      setSchool(data.school || ''); // Set new state
+      setFraternity(data.fraternity || ''); // Set new state
       if (data.avatar_url) {
         const { data: publicUrlData } = supabase.storage
           .from('avatars')
@@ -69,18 +69,18 @@ const ProfilePage = () => {
 
     setLoading(true);
     console.log('Attempting to update profile for user:', session.user.id);
-    console.log('Sending data:', { first_name: firstName, last_name: lastName });
+    console.log('Sending data:', { school: school, fraternity: fraternity }); // Log new fields
 
     const { error } = await supabase
       .from('profiles')
-      .update({ first_name: firstName, last_name: lastName, updated_at: new Date().toISOString() })
+      .update({ school: school, fraternity: fraternity, updated_at: new Date().toISOString() }) // Update new fields
       .eq('id', session.user.id);
 
     if (error) {
       console.error('Error updating profile:', error.message);
-      showError(`Failed to update profile: ${error.message}`); // Show more specific error
+      showError(`Failed to update profile: ${error.message}`);
     } else {
-      setProfile(prev => prev ? { ...prev, first_name: firstName, last_name: lastName } : null);
+      setProfile(prev => prev ? { ...prev, school: school, fraternity: fraternity } : null); // Update state with new fields
       showSuccess('Profile updated successfully!');
       console.log('Profile updated successfully!');
     }
@@ -189,22 +189,22 @@ const ProfilePage = () => {
               <Input id="email" type="email" value={session?.user.email || ''} disabled />
             </div>
             <div>
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="school">School</Label> {/* New Label */}
               <Input
-                id="firstName"
+                id="school"
                 type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                value={school}
+                onChange={(e) => setSchool(e.target.value)}
                 disabled={loading || uploading}
               />
             </div>
             <div>
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="fraternity">Fraternity</Label> {/* New Label */}
               <Input
-                id="lastName"
+                id="fraternity"
                 type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                value={fraternity}
+                onChange={(e) => setFraternity(e.target.value)}
                 disabled={loading || uploading}
               />
             </div>

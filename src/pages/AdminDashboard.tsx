@@ -160,7 +160,6 @@ const AdminDashboard = () => {
                   <TableHead>First Name</TableHead>
                   <TableHead>Last Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -171,7 +170,6 @@ const AdminDashboard = () => {
                     <TableCell>{profile.first_name || 'N/A'}</TableCell>
                     <TableCell>{profile.last_name || 'N/A'}</TableCell>
                     <TableCell>{profile.email}</TableCell>
-                    <TableCell>{profile.role}</TableCell> {/* Display role as text */}
                     <TableCell className="text-right">
                       <Button
                         variant="outline"

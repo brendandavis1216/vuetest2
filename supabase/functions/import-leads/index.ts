@@ -33,6 +33,16 @@ serve(async (req) => {
       });
     }
 
+    // Get the user ID for created_by once before processing records
+    const { data: userData, error: userAuthError } = await supabaseClient.auth.getUser();
+    if (userAuthError || !userData.user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized: Could not get user ID for lead creation.' }), {
+        status: 401,
+        headers: corsHeaders,
+      });
+    }
+    const createdByUserId = userData.user.id;
+
     const formData = await req.formData();
     const csvFile = formData.get('file') as File;
 
@@ -56,10 +66,9 @@ serve(async (req) => {
 
     const leadsToInsert = [];
     const errors = [];
-    const createdBy = supabaseClient.auth.getUser().then(res => res.data.user?.id); // Get user ID for created_by
 
     for (const record of records) {
-      const { school, fraternity, contact_phone, instagram_handle, contact_name, status, notes } = record as Record<string, string>; // Destructure new fields
+      const { school, fraternity, contact_phone, instagram_handle, contact_name, status, notes } = record as Record<string, string>;
 
       if (!school || !fraternity || !contact_phone) { // Validate required fields
         errors.push({ record, message: 'Missing required fields: school, fraternity, or contact_phone.' });
@@ -79,12 +88,12 @@ serve(async (req) => {
       leadsToInsert.push({
         school,
         fraternity,
-        contact_phone, // Use new field
-        instagram_handle: instagram_handle || null, // Use new field
+        contact_phone,
+        instagram_handle: instagram_handle || null,
         contact_name: contact_name || null,
         status: finalStatus,
         notes: notes || null,
-        created_by: await createdBy,
+        created_by: createdByUserId, // Use the awaited user ID
       });
     }
 

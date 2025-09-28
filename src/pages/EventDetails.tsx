@@ -9,6 +9,7 @@ import { showError } from '@/utils/toast';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import DocumentUploadCard from '@/components/DocumentUploadCard'; // Import the DocumentUploadCard
 
 interface Event {
   id: string;
@@ -19,11 +20,11 @@ interface Event {
   contact_phone: string;
   created_at: string;
   user_id: string;
-  renders_url: string | null; // New field
-  contract_url: string | null; // New field
-  invoice_url: string | null; // New field
-  equipment_list_url: string | null; // New field
-  other_documents_url: string | null; // New field
+  renders_url: string | null;
+  contract_url: string | null;
+  invoice_url: string | null;
+  equipment_list_url: string | null;
+  other_documents_url: string | null;
 }
 
 const EventDetails = () => {
@@ -32,6 +33,25 @@ const EventDetails = () => {
   const { supabase, session } = useSupabase();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+
+  const checkAdminStatus = useCallback(async () => {
+    setLoadingAdminStatus(true);
+    if (!session) {
+      setIsAdmin(false);
+      setLoadingAdminStatus(false);
+      return;
+    }
+    const { data, error } = await supabase.rpc('is_admin');
+    if (error) {
+      console.error('Error checking admin role:', error.message);
+      setIsAdmin(false);
+    } else {
+      setIsAdmin(data);
+    }
+    setLoadingAdminStatus(false);
+  }, [session, supabase]);
 
   const fetchEventDetails = useCallback(async () => {
     if (!id || !session?.user.id) {
@@ -43,9 +63,10 @@ const EventDetails = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('events')
-      .select('*') // Select all columns, including the new URL fields
+      .select('*')
       .eq('id', id)
-      .eq('user_id', session.user.id)
+      // Admins can view any event, clients can only view their own
+      .or(`user_id.eq.${session.user.id},is_admin.eq.true`) 
       .single();
 
     if (error) {
@@ -59,10 +80,11 @@ const EventDetails = () => {
   }, [id, session, supabase, navigate]);
 
   useEffect(() => {
+    checkAdminStatus();
     fetchEventDetails();
-  }, [fetchEventDetails]);
+  }, [checkAdminStatus, fetchEventDetails]);
 
-  if (loading) {
+  if (loading || loadingAdminStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Skeleton className="h-[300px] w-full max-w-4xl" />
@@ -75,8 +97,8 @@ const EventDetails = () => {
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <h2 className="text-2xl font-bold mb-4">Event Not Found</h2>
         <p className="text-gray-600 mb-6">The event you are looking for does not exist or you do not have permission to view it.</p>
-        <Button onClick={() => navigate('/dashboard')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+        <Button onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
         </Button>
       </div>
     );
@@ -94,8 +116,8 @@ const EventDetails = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between mb-6">
-        <Button variant="outline" onClick={() => navigate('/dashboard')}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+        <Button variant="outline" onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}>
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back to {isAdmin ? 'Admin Dashboard' : 'Dashboard'}
         </Button>
         <h1 className="text-3xl font-bold">Event: {event.event_name || 'Untitled Event'}</h1>
       </div>
@@ -129,101 +151,94 @@ const EventDetails = () => {
         </CardContent>
       </Card>
 
+      <h2 className="text-2xl font-bold mt-8 mb-4">Event Documents</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Renders</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              {event.renders_url ? 'Renders available.' : 'No renders available yet.'}
-            </p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => handleViewDocument(event.renders_url, 'Renders')}
-              disabled={!event.renders_url}
-            >
-              View Renders
-            </Button>
-          </CardContent>
-        </Card>
+        {isAdmin ? (
+          <>
+            <DocumentUploadCard
+              eventId={event.id}
+              documentType="renders"
+              currentUrl={event.renders_url}
+              onDocumentUpdated={fetchEventDetails}
+            />
+            <DocumentUploadCard
+              eventId={event.id}
+              documentType="contract"
+              currentUrl={event.contract_url}
+              onDocumentUpdated={fetchEventDetails}
+            />
+            <DocumentUploadCard
+              eventId={event.id}
+              documentType="invoice"
+              currentUrl={event.invoice_url}
+              onDocumentUpdated={fetchEventDetails}
+            />
+            <DocumentUploadCard
+              eventId={event.id}
+              documentType="equipment_list"
+              currentUrl={event.equipment_list_url}
+              onDocumentUpdated={fetchEventDetails}
+            />
+            <DocumentUploadCard
+              eventId={event.id}
+              documentType="other_documents"
+              currentUrl={event.other_documents_url}
+              onDocumentUpdated={fetchEventDetails}
+            />
+          </>
+        ) : (
+          <>
+            <Card>
+              <CardHeader><CardTitle>Renders</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{event.renders_url ? 'Renders available.' : 'No renders available yet.'}</p>
+                <Button variant="outline" className="mt-4" onClick={() => handleViewDocument(event.renders_url, 'Renders')} disabled={!event.renders_url}>
+                  View Renders
+                </Button>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Contract</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              {event.contract_url ? 'Contract available.' : 'No contract available yet.'}
-            </p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => handleViewDocument(event.contract_url, 'Contract')}
-              disabled={!event.contract_url}
-            >
-              View Contract
-            </Button>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader><CardTitle>Contract</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{event.contract_url ? 'Contract available.' : 'No contract available yet.'}</p>
+                <Button variant="outline" className="mt-4" onClick={() => handleViewDocument(event.contract_url, 'Contract')} disabled={!event.contract_url}>
+                  View Contract
+                </Button>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Invoice</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              {event.invoice_url ? 'Invoice available.' : 'No invoice available yet.'}
-            </p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => handleViewDocument(event.invoice_url, 'Invoice')}
-              disabled={!event.invoice_url}
-            >
-              View Invoice
-            </Button>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader><CardTitle>Invoice</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{event.invoice_url ? 'Invoice available.' : 'No invoice available yet.'}</p>
+                <Button variant="outline" className="mt-4" onClick={() => handleViewDocument(event.invoice_url, 'Invoice')} disabled={!event.invoice_url}>
+                  View Invoice
+                </Button>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Equipment List</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              {event.equipment_list_url ? 'Equipment list available.' : 'No equipment list available yet.'}
-            </p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => handleViewDocument(event.equipment_list_url, 'Equipment List')}
-              disabled={!event.equipment_list_url}
-            >
-              View Equipment List
-            </Button>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader><CardTitle>Equipment List</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{event.equipment_list_url ? 'Equipment list available.' : 'No equipment list available yet.'}</p>
+                <Button variant="outline" className="mt-4" onClick={() => handleViewDocument(event.equipment_list_url, 'Equipment List')} disabled={!event.equipment_list_url}>
+                  View Equipment List
+                </Button>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Other Documents</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              {event.other_documents_url ? 'Other documents available.' : 'No other documents available yet.'}
-            </p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => handleViewDocument(event.other_documents_url, 'Other Documents')}
-              disabled={!event.other_documents_url}
-            >
-              View Documents
-            </Button>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader><CardTitle>Other Documents</CardTitle></CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">{event.other_documents_url ? 'Other documents available.' : 'No other documents available yet.'}</p>
+                <Button variant="outline" className="mt-4" onClick={() => handleViewDocument(event.other_documents_url, 'Other Documents')} disabled={!event.other_documents_url}>
+                  View Documents
+                </Button>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
     </div>
   );

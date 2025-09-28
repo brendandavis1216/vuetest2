@@ -243,7 +243,7 @@ const AdminDashboard = () => {
                   <TableHead>School</TableHead>
                   <TableHead>Fraternity</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead className="text-center">Chapter Assignment</TableHead> {/* New Table Head */}
+                  <TableHead className="text-center">Chapter Assignment</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                   <TableHead className="text-right">Chapter Profile</TableHead>
                 </TableRow>
@@ -254,17 +254,17 @@ const AdminDashboard = () => {
                     <TableCell>{profile.school || 'N/A'}</TableCell>
                     <TableCell>{profile.fraternity || 'N/A'}</TableCell>
                     <TableCell>{profile.email}</TableCell>
-                    <TableCell className="text-center"> {/* New Table Cell for Chapter Assignment */}
+                    <TableCell className="text-center">
                       <Select
-                        value={profile.chapter_id || ''}
-                        onValueChange={(value) => handleChapterAssignment(profile.id, value === '' ? null : value)}
+                        value={profile.chapter_id || 'unassign-chapter'} {/* Set default value for unassigned */}
+                        onValueChange={(value) => handleChapterAssignment(profile.id, value === 'unassign-chapter' ? null : value)}
                         disabled={loadingChapters}
                       >
                         <SelectTrigger className="w-[180px]">
                           <SelectValue placeholder="Assign Chapter" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">Unassign Chapter</SelectItem>
+                          <SelectItem value="unassign-chapter">Unassign Chapter</SelectItem> {/* Changed value */}
                           {chapters.map((chapter) => (
                             <SelectItem key={chapter.id} value={chapter.id}>
                               {chapter.name}

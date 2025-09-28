@@ -119,6 +119,7 @@ serve(async (req) => {
         averageBudget: analytics?.totalEvents ? (analytics.totalBudget / analytics.totalEvents) : 0,
         signedContractsCount: analytics?.signedContractsCount || 0,
         lastEventDate: analytics?.lastEventDate || null,
+        ltv: analytics?.totalBudget || 0, // Add LTV (total budget)
       };
     });
 

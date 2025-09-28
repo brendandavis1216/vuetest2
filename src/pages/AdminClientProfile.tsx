@@ -23,6 +23,7 @@ interface Profile {
   averageBudget: number;
   signedContractsCount: number;
   lastEventDate: string | null;
+  ltv: number; // New field for Lifetime Value
 }
 
 interface Event {
@@ -214,6 +215,12 @@ const AdminClientProfile = () => {
             <p className="text-sm font-medium text-muted-foreground">Signed Contracts</p>
             <p className="text-lg font-semibold flex items-center gap-1">
               <CheckCircle2 className="h-5 w-5 text-green-500" /> {clientProfile.signedContractsCount}
+            </p>
+          </div>
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Lifetime Value (LTV)</p> {/* New LTV field */}
+            <p className="text-lg font-semibold flex items-center gap-1">
+              <DollarSign className="h-5 w-5 text-muted-foreground" /> ${clientProfile.ltv.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </p>
           </div>
           <div>

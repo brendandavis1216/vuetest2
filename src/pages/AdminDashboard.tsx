@@ -25,6 +25,7 @@ interface Profile {
   averageBudget: number; // New field
   signedContractsCount: number; // New field
   lastEventDate: string | null; // New field
+  ltv: number; // New field for Lifetime Value
 }
 
 interface Event {

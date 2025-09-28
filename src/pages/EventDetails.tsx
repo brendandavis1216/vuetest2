@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom'; // Import Link
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { showError } from '@/utils/toast';
 import { format } from 'date-fns';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Image } from 'lucide-react'; // Import Image icon
 import { Skeleton } from '@/components/ui/skeleton';
-import DocumentUploadCard from '@/components/DocumentUploadCard'; // Import the DocumentUploadCard
-import EventChecklist from '@/components/EventChecklist'; // Import the new EventChecklist component
+import DocumentUploadCard from '@/components/DocumentUploadCard';
+import EventChecklist from '@/components/EventChecklist';
 
 interface Event {
   id: string;
@@ -26,7 +26,7 @@ interface Event {
   invoice_url: string | null;
   equipment_list_url: string | null;
   other_documents_url: string | null;
-  signed_contract_url: string | null; // New field
+  signed_contract_url: string | null;
 }
 
 const EventDetails = () => {
@@ -65,7 +65,7 @@ const EventDetails = () => {
     setLoading(true);
     const { data, error } = await supabase
       .from('events')
-      .select('*, signed_contract_url') // Select the new field
+      .select('*, signed_contract_url')
       .eq('id', id)
       .single();
 
@@ -150,7 +150,14 @@ const EventDetails = () => {
         </CardContent>
       </Card>
 
-      <h2 className="text-3xl font-bold mt-8 mb-4 text-foreground">Event Documents</h2>
+      <div className="flex justify-between items-center mt-8 mb-4">
+        <h2 className="text-3xl font-bold text-foreground">Event Documents</h2>
+        <Link to={`/events/${event.id}/media`}>
+          <Button variant="outline">
+            <Image className="mr-2 h-4 w-4" /> View/Add Media
+          </Button>
+        </Link>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Signed Contract: Client uploads, Admin views */}
         <DocumentUploadCard

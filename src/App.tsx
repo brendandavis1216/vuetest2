@@ -14,6 +14,7 @@ import AdminAnalytics from "./pages/AdminAnalytics";
 import AdminCalendar from "./pages/AdminCalendar";
 import AdminClientProfile from "./pages/AdminClientProfile";
 import EventDetails from "./pages/EventDetails";
+import EventMedia from "./pages/EventMedia"; // Import the new EventMedia page
 import MainLayout from "./components/MainLayout";
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
 import React, { useEffect, useState, useCallback } from "react";
@@ -108,6 +109,8 @@ const App = () => (
                 <Route path="/admin/analytics" element={<AdminAnalytics />} />
                 <Route path="/admin/calendar" element={<AdminCalendar />} />
                 <Route path="/admin/clients/:userId" element={<AdminClientProfile />} />
+                <Route path="/events/:eventId" element={<EventDetails />} />
+                <Route path="/events/:eventId/media" element={<EventMedia />} /> {/* New route */}
               </Route>
 
               <Route path="*" element={<NotFound />} />

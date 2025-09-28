@@ -5,9 +5,19 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, LayoutDashboard } from 'lucide-react';
-import { showError } from '@/utils/toast';
+import { ArrowLeft, LayoutDashboard, Trash2 } from 'lucide-react'; // Added Trash2 for removing items
+import { showError, showSuccess } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import StageItemSelector from '@/components/StageItemSelector'; // Import the new StageItemSelector
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+
+// Define a type for a stage item (should match StageItemSelector's definition)
+interface StageItem {
+  id: string;
+  name: string;
+  category: string;
+  icon?: React.ElementType;
+}
 
 interface Event {
   id: string;
@@ -23,6 +33,7 @@ const StageBuilder = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+  const [selectedStageItems, setSelectedStageItems] = useState<StageItem[]>([]); // State to hold selected items
 
   const checkAdminStatus = useCallback(async () => {
     setLoadingAdminStatus(true);
@@ -92,6 +103,17 @@ const StageBuilder = () => {
     }
   }, [loadingAdminStatus, fetchEventDetails]);
 
+  const handleAddItemToStage = (item: StageItem) => {
+    // For now, just add the item. Later, we might add quantity, position, etc.
+    setSelectedStageItems(prevItems => [...prevItems, { ...item, id: `${item.id}-${Date.now()}` }]); // Add unique ID
+    showSuccess(`${item.name} added to stage!`);
+  };
+
+  const handleRemoveItemFromStage = (itemId: string) => {
+    setSelectedStageItems(prevItems => prevItems.filter(item => item.id !== itemId));
+    showSuccess('Item removed from stage.');
+  };
+
   if (loading || loadingAdminStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -121,21 +143,59 @@ const StageBuilder = () => {
         <h1 className="text-4xl font-bold text-foreground text-center sm:text-left">Stage Builder for: {event.event_name || 'Untitled Event'}</h1>
       </div>
 
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl font-semibold flex items-center gap-2">
-            <LayoutDashboard className="h-6 w-6" /> Stage Design Interface
-          </CardTitle>
-          <CardDescription>
-            This is where you can design and visualize your event stage. (Feature under development)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="min-h-[400px] flex items-center justify-center bg-muted rounded-md border border-dashed">
-          <p className="text-muted-foreground text-lg">
-            Stage building tools will appear here!
-          </p>
-        </CardContent>
-      </Card>
+      <ResizablePanelGroup
+        direction="horizontal"
+        className="min-h-[70vh] w-full rounded-lg border"
+      >
+        <ResizablePanel defaultSize={25} minSize={20} maxSize={35}>
+          <div className="flex h-full items-center justify-center p-2">
+            <StageItemSelector onAddItem={handleAddItemToStage} />
+          </div>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={75}>
+          <div className="flex h-full flex-col">
+            <Card className="flex-grow shadow-lg border-none rounded-none">
+              <CardHeader className="border-b">
+                <CardTitle className="text-2xl font-semibold flex items-center gap-2">
+                  <LayoutDashboard className="h-6 w-6" /> Stage Design Canvas
+                </CardTitle>
+                <CardDescription>
+                  Drag and drop items here to build your stage layout.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-grow flex items-center justify-center bg-muted rounded-b-md p-4">
+                {selectedStageItems.length === 0 ? (
+                  <p className="text-muted-foreground text-lg">
+                    Start by selecting items from the left panel!
+                  </p>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full h-full overflow-y-auto">
+                    {selectedStageItems.map(item => {
+                      const ItemIcon = item.icon || Box;
+                      return (
+                        <Card key={item.id} className="flex flex-col items-center justify-center p-4 text-center relative">
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-2 right-2 h-6 w-6 rounded-full"
+                            onClick={() => handleRemoveItemFromStage(item.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                          <ItemIcon className="h-12 w-12 text-primary mb-2" />
+                          <p className="font-semibold text-sm">{item.name}</p>
+                          <p className="text-xs text-muted-foreground">{item.category}</p>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 };

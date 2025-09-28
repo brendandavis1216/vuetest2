@@ -198,10 +198,7 @@ const AdminClientProfile = () => {
           <CardDescription>Overview of the client's profile and activity.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">Email</p>
-            <p className="text-lg font-semibold">{clientProfile.email}</p>
-          </div>
+          {/* Top 3 prioritized fields */}
           <div>
             <p className="text-sm font-medium text-muted-foreground">School</p>
             <p className="text-lg font-semibold">{clientProfile.school || 'N/A'}</p>
@@ -211,15 +208,16 @@ const AdminClientProfile = () => {
             <p className="text-lg font-semibold">{clientProfile.fraternity || 'N/A'}</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Total Events Booked</p>
-            <p className="text-lg font-semibold flex items-center gap-1">
-              <CalendarDays className="h-5 w-5 text-muted-foreground" /> {clientProfile.totalEvents}
-            </p>
-          </div>
-          <div>
             <p className="text-sm font-medium text-muted-foreground">Average Event Budget</p>
             <p className="text-lg font-semibold flex items-center gap-1">
               <DollarSign className="h-5 w-5 text-muted-foreground" /> ${clientProfile.averageBudget.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            </p>
+          </div>
+          {/* Other fields */}
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Total Events Booked</p>
+            <p className="text-lg font-semibold flex items-center gap-1">
+              <CalendarDays className="h-5 w-5 text-muted-foreground" /> {clientProfile.totalEvents}
             </p>
           </div>
           <div>
@@ -239,6 +237,11 @@ const AdminClientProfile = () => {
             <p className="text-lg font-semibold">
               {clientProfile.lastEventDate ? format(new Date(clientProfile.lastEventDate), 'PPP') : 'N/A'}
             </p>
+          </div>
+          {/* Email moved to lower priority */}
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Email</p>
+            <p className="text-lg font-semibold">{clientProfile.email}</p>
           </div>
         </CardContent>
       </Card>

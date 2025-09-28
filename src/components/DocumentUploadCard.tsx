@@ -30,7 +30,13 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
   const documentTitle = documentType.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(`[${documentTitle}] handleFileUpload called.`);
+    console.log(`[${documentTitle}] readOnly:`, readOnly);
+    console.log(`[${documentTitle}] session?.user.id:`, session?.user.id);
+    console.log(`[${documentTitle}] event.target.files:`, event.target.files);
+
     if (readOnly || !session?.user.id || !event.target.files || event.target.files.length === 0) {
+      console.warn(`[${documentTitle}] Upload aborted: readOnly=${readOnly}, userId=${session?.user.id}, files=${event.target.files?.length}`);
       showError('No user session, file selected, or action is read-only.');
       return;
     }
@@ -40,6 +46,8 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
     const fileExt = file.name.split('.').pop();
     const filePath = `${eventId}/${documentType}-${Date.now()}.${fileExt}`; // Unique path per event/document type
 
+    console.log(`[${documentTitle}] Attempting to upload file:`, file.name, `to path:`, filePath);
+
     const { error: uploadError } = await supabase.storage
       .from('event-documents')
       .upload(filePath, file, {
@@ -48,12 +56,13 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
       });
 
     if (uploadError) {
-      console.error(`Error uploading ${documentType}:`, uploadError.message);
+      console.error(`[${documentTitle}] Error uploading ${documentType}:`, uploadError.message);
       showError(`Failed to upload ${documentTitle}: ${uploadError.message}`);
       setUploading(false);
       return;
     }
 
+    console.log(`[${documentTitle}] Upload successful, getting public URL.`);
     // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from('event-documents')
@@ -61,23 +70,27 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
 
     // Update the event record with the new URL
     const updateColumn = `${documentType}_url`;
+    console.log(`[${documentTitle}] Updating event ${eventId} with ${updateColumn}:`, publicUrlData.publicUrl);
     const { error: updateError } = await supabase
       .from('events')
       .update({ [updateColumn]: publicUrlData.publicUrl, updated_at: new Date().toISOString() })
       .eq('id', eventId);
 
     if (updateError) {
-      console.error(`Error updating event with ${documentType} URL:`, updateError.message);
+      console.error(`[${documentTitle}] Error updating event with ${documentType} URL:`, updateError.message);
       showError(`Failed to update event with ${documentTitle} URL: ${updateError.message}`);
     } else {
       showSuccess(`${documentTitle} uploaded and linked successfully!`);
       onDocumentUpdated(); // Trigger a refresh of the parent component
+      console.log(`[${documentTitle}] Event updated successfully.`);
     }
     setUploading(false);
   };
 
   const handleDeleteDocument = async () => {
+    console.log(`[${documentTitle}] handleDeleteDocument called.`);
     if (readOnly || !currentUrl) {
+      console.warn(`[${documentTitle}] Deletion aborted: readOnly=${readOnly}, currentUrl=${currentUrl}`);
       showError(`No ${documentTitle} to delete or action is read-only.`);
       return;
     }
@@ -87,12 +100,14 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
     const fileName = urlParts[urlParts.length - 1];
     const filePath = `${eventId}/${fileName}`; // Reconstruct path for deletion
 
+    console.log(`[${documentTitle}] Attempting to delete file from path:`, filePath);
+
     const { error: deleteError } = await supabase.storage
       .from('event-documents')
       .remove([filePath]);
 
     if (deleteError) {
-      console.error(`Error deleting ${documentType}:`, deleteError.message);
+      console.error(`[${documentTitle}] Error deleting ${documentType}:`, deleteError.message);
       showError(`Failed to delete ${documentTitle}: ${deleteError.message}`);
       setUploading(false);
       return;
@@ -100,17 +115,19 @@ const DocumentUploadCard: React.FC<DocumentUploadCardProps> = ({
 
     // Clear the URL in the event record
     const updateColumn = `${documentType}_url`;
+    console.log(`[${documentTitle}] Clearing event ${eventId} ${updateColumn}.`);
     const { error: updateError } = await supabase
       .from('events')
       .update({ [updateColumn]: null, updated_at: new Date().toISOString() })
       .eq('id', eventId);
 
     if (updateError) {
-      console.error(`Error clearing ${documentType} URL in event:`, updateError.message);
+      console.error(`[${documentTitle}] Error clearing ${documentType} URL in event:`, updateError.message);
       showError(`Failed to clear ${documentTitle} URL: ${updateError.message}`);
     } else {
       showSuccess(`${documentTitle} deleted successfully!`);
       onDocumentUpdated();
+      console.log(`[${documentTitle}] Document URL cleared successfully.`);
     }
     setUploading(false);
   };

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { FileStack, ArrowLeft, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAdminEventNotifications } from '@/hooks/useAdminEventNotifications'; // Import the new hook
+import EditEventDialog from '@/components/EditEventDialog'; // Ensure EditEventDialog is imported
 
 interface Profile {
   id: string;
@@ -241,7 +242,8 @@ const AdminDashboard = () => {
                       <TableHead>Budget</TableHead>
                       <TableHead>Contact Phone</TableHead>
                       <TableHead>Completion</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead className="text-center min-w-[120px]">View Documents</TableHead> {/* New column header */}
+                      <TableHead className="text-center min-w-[80px]">Edit</TableHead> {/* New column header */}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -253,13 +255,15 @@ const AdminDashboard = () => {
                         <TableCell>${event.budget.toLocaleString()}</TableCell>
                         <TableCell>{event.contact_phone}</TableCell>
                         <TableCell>{calculateCompletionPercentage(event)}%</TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-center"> {/* New cell for View Documents */}
                           <Link to={`/events/${event.id}`}>
-                            <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                              <Eye className="h-4 w-4" />
-                              <span className="sr-only">View Event Details</span>
+                            <Button variant="outline" size="sm">
+                              View Documents
                             </Button>
                           </Link>
+                        </TableCell>
+                        <TableCell className="text-center"> {/* New cell for Edit */}
+                          <EditEventDialog event={event} onEventUpdated={fetchUserEvents.bind(null, selectedUser.id)} />
                         </TableCell>
                       </TableRow>
                     ))}

@@ -69,13 +69,13 @@ const StageItemSelector: React.FC<StageItemSelectorProps> = ({ onAddItem }) => {
       </CardHeader>
       <CardContent className="flex-grow flex flex-col p-0">
         <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex flex-col flex-grow">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-1 p-2 border-b">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1 p-2 border-b">
             {categories.map(category => {
               const Icon = category.icon;
               return (
                 <TabsTrigger key={category.name} value={category.name} className="flex items-center gap-1">
-                  <Icon className="h-4 w-4" />
-                  {category.label}
+                  <Icon className="h-4 w-4 flex-shrink-0" />
+                  <span className="flex-grow truncate">{category.label}</span>
                 </TabsTrigger>
               );
             })}
@@ -94,9 +94,9 @@ const StageItemSelector: React.FC<StageItemSelectorProps> = ({ onAddItem }) => {
                           className="flex items-center justify-start gap-2 h-auto py-3 px-4 text-left"
                           onClick={() => onAddItem(item)}
                         >
-                          <ItemIcon className="h-5 w-5 text-primary" />
-                          <span className="flex-grow text-base font-medium">{item.name}</span>
-                          <PlusCircle className="h-4 w-4 text-muted-foreground" />
+                          <ItemIcon className="h-5 w-5 text-primary flex-shrink-0" />
+                          <span className="flex-grow text-base font-medium truncate">{item.name}</span>
+                          <PlusCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         </Button>
                       );
                     })

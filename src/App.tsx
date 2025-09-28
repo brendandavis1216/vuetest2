@@ -9,29 +9,55 @@ import LoginPage from "./pages/Login";
 import ProfilePage from "./pages/Profile";
 import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/AdminDashboard";
-import AdminEventDocuments from "./pages/AdminEventDocuments"; // Import the new AdminEventDocuments page
+import AdminEventDocuments from "./pages/AdminEventDocuments";
 import EventDetails from "./pages/EventDetails";
 import MainLayout from "./components/MainLayout";
 import { SessionContextProvider, useSupabase } from "./integrations/supabase/SessionContextProvider";
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react"; // Import useState and useCallback
 
 const queryClient = new QueryClient();
 
 // A wrapper component to handle authentication redirects
 const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { session, loading } = useSupabase();
+  const { supabase, session, loading } = useSupabase(); // Get supabase client
   const navigate = useNavigate();
   const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
+
+  const checkAdminStatus = useCallback(async () => {
+    setLoadingAdminStatus(true);
+    if (session?.user) {
+      const { data, error } = await supabase.rpc('is_admin');
+      if (error) {
+        console.error('Error checking admin role:', error.message);
+        setIsAdmin(false);
+      } else {
+        setIsAdmin(data);
+      }
+    } else {
+      setIsAdmin(false);
+    }
+    setLoadingAdminStatus(false);
+  }, [session, supabase]);
 
   useEffect(() => {
-    if (loading) return;
+    checkAdminStatus();
+  }, [checkAdminStatus]);
+
+  useEffect(() => {
+    if (loading || loadingAdminStatus) return;
 
     const currentPath = location.pathname;
 
     if (session) {
-      // If authenticated, redirect away from login/index pages to dashboard
+      // If authenticated, redirect away from login/index pages
       if (currentPath === '/login' || currentPath === '/') {
-        navigate('/dashboard', { replace: true });
+        if (isAdmin) {
+          navigate('/admin', { replace: true });
+        } else {
+          navigate('/dashboard', { replace: true });
+        }
       }
     } else {
       // If unauthenticated, redirect to login page (unless already there)
@@ -39,9 +65,9 @@ const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         navigate('/login', { replace: true });
       }
     }
-  }, [session, loading, navigate, location.pathname]);
+  }, [session, loading, loadingAdminStatus, isAdmin, navigate, location.pathname]);
 
-  if (loading) {
+  if (loading || loadingAdminStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p>Loading application...</p>
@@ -69,7 +95,7 @@ const App = () => (
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/event-documents" element={<AdminEventDocuments />} /> {/* New Admin Event Documents route */}
+                <Route path="/admin/event-documents" element={<AdminEventDocuments />} />
                 <Route path="/events/:id" element={<EventDetails />} />
               </Route>
 

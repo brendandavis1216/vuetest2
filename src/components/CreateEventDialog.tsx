@@ -20,6 +20,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription, // Added FormDescription here
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Calendar } from '@/components/ui/calendar';

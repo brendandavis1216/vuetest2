@@ -69,7 +69,7 @@ const StageItemSelector: React.FC<StageItemSelectorProps> = ({ onAddItem }) => {
       </CardHeader>
       <CardContent className="flex-grow flex flex-col p-0">
         <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex flex-col flex-grow">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1 p-2 border-b">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-3 gap-1 p-2 border-b"> {/* Adjusted grid columns */}
             {categories.map(category => {
               const Icon = category.icon;
               return (

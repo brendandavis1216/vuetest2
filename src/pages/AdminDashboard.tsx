@@ -174,9 +174,9 @@ const AdminDashboard = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>School</TableHead> {/* Changed from First Name */}
-                  <TableHead>Fraternity</TableHead> {/* Changed from Last Name */}
+                  {/* Removed TableHead for ID */}
+                  <TableHead>School</TableHead>
+                  <TableHead>Fraternity</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -184,9 +184,9 @@ const AdminDashboard = () => {
               <TableBody>
                 {profiles.map((profile) => (
                   <TableRow key={profile.id}>
-                    <TableCell className="font-medium">{profile.id.substring(0, 8)}...</TableCell>
-                    <TableCell>{profile.school || 'N/A'}</TableCell> {/* Display school */}
-                    <TableCell>{profile.fraternity || 'N/A'}</TableCell> {/* Display fraternity */}
+                    {/* Removed TableCell for ID */}
+                    <TableCell>{profile.school || 'N/A'}</TableCell>
+                    <TableCell>{profile.fraternity || 'N/A'}</TableCell>
                     <TableCell>{profile.email}</TableCell>
                     <TableCell className="text-right">
                       <Button
@@ -209,7 +209,7 @@ const AdminDashboard = () => {
             <Button variant="outline" onClick={() => setSelectedUser(null)}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Back to All Users
             </Button>
-            <h2 className="text-2xl font-bold">Events for: {selectedUser.school} {selectedUser.fraternity} ({selectedUser.email})</h2> {/* Display school and fraternity */}
+            <h2 className="text-2xl font-bold">Events for: {selectedUser.school} {selectedUser.fraternity} ({selectedUser.email})</h2>
           </div>
 
           <Card>
@@ -234,7 +234,7 @@ const AdminDashboard = () => {
                       <TableHead>Artist Name</TableHead>
                       <TableHead>Budget</TableHead>
                       <TableHead>Contact Phone</TableHead>
-                      <TableHead>Completion</TableHead> {/* New Table Head */}
+                      <TableHead>Completion</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -246,7 +246,7 @@ const AdminDashboard = () => {
                         <TableCell>{event.artist_name || 'N/A'}</TableCell>
                         <TableCell>${event.budget.toLocaleString()}</TableCell>
                         <TableCell>{event.contact_phone}</TableCell>
-                        <TableCell>{calculateCompletionPercentage(event)}%</TableCell> {/* Display Completion */}
+                        <TableCell>{calculateCompletionPercentage(event)}%</TableCell>
                         <TableCell className="text-right">
                           <Link to={`/events/${event.id}`}>
                             <Button variant="outline" size="sm" className="h-8 w-8 p-0">

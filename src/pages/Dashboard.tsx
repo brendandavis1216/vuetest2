@@ -71,8 +71,8 @@ const Dashboard = () => {
 
   return (
     <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-4xl font-bold text-foreground">Dashboard</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4"> {/* Adjusted for mobile stacking */}
+        <h1 className="text-4xl font-bold text-foreground text-center sm:text-left">Dashboard</h1>
         <CreateEventDialog onEventCreated={fetchEvents} />
       </div>
 

@@ -17,7 +17,7 @@ const Index = () => {
         <p className="text-xl text-foreground mb-6">
           Please log in to continue.
         </p>
-        <div className="flex space-x-4 justify-center">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 justify-center"> {/* Adjusted for mobile stacking */}
           <Link to="/login">
             <Button>Login</Button>
           </Link>

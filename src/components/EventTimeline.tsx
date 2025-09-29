@@ -93,7 +93,7 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ event }) => {
               const iconColorClass = step.status === 'completed' ? 'bg-green-500' : 'bg-gray-400';
 
               return (
-                <div key={index} className="flex flex-col items-center text-center flex-shrink-0 w-40 px-2">
+                <div key={index} className="flex flex-col items-center text-center flex-shrink-0 w-28 px-1 sm:w-32 md:w-40"> {/* Adjusted width for mobile */}
                   {/* Icon */}
                   <div className={cn("h-8 w-8 rounded-full flex items-center justify-center mb-2", iconColorClass)}>
                     <IconComponent className="h-5 w-5 text-white" />

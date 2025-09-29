@@ -8,17 +8,17 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, BarChart, Users, CalendarDays, DollarSign, FileText } from 'lucide-react';
 import { showError, showSuccess } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import EventsByArtistStatusChart from '@/components/analytics/EventsByArtistStatusChart';
 import ContractStatusPieChart from '@/components/analytics/ContractStatusPieChart';
+import BudgetByContractStatusChart from '@/components/analytics/BudgetByContractStatusChart'; // New import
 
 interface AnalyticsData {
   totalEvents: number;
   totalUsers: number;
   averageBudget: number;
-  eventsWithArtist: number;
-  eventsWithoutArtist: number; // New field for chart
-  signedContractsCount: number; // New field for chart
-  pendingContractsCount: number; // New field for chart
+  signedContractsCount: number;
+  pendingContractsCount: number;
+  totalSignedBudget: number; // New field
+  totalPendingBudget: number; // New field
   documentsUploaded: number;
 }
 
@@ -32,10 +32,10 @@ const AdminAnalytics = () => {
     totalEvents: 0,
     totalUsers: 0,
     averageBudget: 0,
-    eventsWithArtist: 0,
-    eventsWithoutArtist: 0,
     signedContractsCount: 0,
     pendingContractsCount: 0,
+    totalSignedBudget: 0, // Initialize
+    totalPendingBudget: 0, // Initialize
     documentsUploaded: 0,
   });
 
@@ -69,17 +69,18 @@ const AdminAnalytics = () => {
 
       const totalEventsCount = allEvents.length;
       let totalBudget = 0;
-      let eventsWithArtistCount = 0;
       let signedContractsCount = 0;
+      let totalSignedBudget = 0; // New variable
+      let totalPendingBudget = 0; // New variable
       let totalDocumentsUploaded = 0;
 
       allEvents.forEach(event => {
         totalBudget += event.budget;
-        if (event.artist_name) {
-          eventsWithArtistCount++;
-        }
         if (event.signed_contract_url) {
           signedContractsCount++;
+          totalSignedBudget += event.budget; // Add to signed budget
+        } else {
+          totalPendingBudget += event.budget; // Add to pending budget
         }
         // Count uploaded documents for each event
         if (event.renders_url) totalDocumentsUploaded++;
@@ -90,7 +91,6 @@ const AdminAnalytics = () => {
         if (event.signed_contract_url) totalDocumentsUploaded++;
       });
 
-      const eventsWithoutArtist = totalEventsCount - eventsWithArtistCount;
       const pendingContractsCount = totalEventsCount - signedContractsCount;
       const averageBudget = totalEventsCount > 0 ? parseFloat((totalBudget / totalEventsCount).toFixed(2)) : 0;
 
@@ -103,10 +103,10 @@ const AdminAnalytics = () => {
         totalEvents: totalEventsCount,
         totalUsers: totalUsersCount,
         averageBudget: averageBudget,
-        eventsWithArtist: eventsWithArtistCount,
-        eventsWithoutArtist: eventsWithoutArtist,
         signedContractsCount: signedContractsCount,
         pendingContractsCount: pendingContractsCount,
+        totalSignedBudget: totalSignedBudget, // Set new state
+        totalPendingBudget: totalPendingBudget, // Set new state
         documentsUploaded: totalDocumentsUploaded,
       });
 
@@ -188,12 +188,12 @@ const AdminAnalytics = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Events with Artist</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Signed Budget</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{analyticsData.eventsWithArtist}</div>
-            <p className="text-xs text-muted-foreground">Events where an artist is hired</p>
+            <div className="text-2xl font-bold">${analyticsData.totalSignedBudget.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Total budget from signed contracts</p>
           </CardContent>
         </Card>
 
@@ -212,13 +212,13 @@ const AdminAnalytics = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <Card>
           <CardHeader>
-            <CardTitle>Events by Artist Engagement</CardTitle>
-            <CardDescription>Breakdown of events based on artist hiring status.</CardDescription>
+            <CardTitle>Budget by Contract Status</CardTitle>
+            <CardDescription>Total budget for events with signed vs. pending contracts.</CardDescription>
           </CardHeader>
           <CardContent>
-            <EventsByArtistStatusChart
-              eventsWithArtist={analyticsData.eventsWithArtist}
-              eventsWithoutArtist={analyticsData.eventsWithoutArtist}
+            <BudgetByContractStatusChart
+              totalSignedBudget={analyticsData.totalSignedBudget}
+              totalPendingBudget={analyticsData.totalPendingBudget}
             />
           </CardContent>
         </Card>

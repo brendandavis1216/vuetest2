@@ -5,11 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, BarChart, Users, CalendarDays, DollarSign, FileText } from 'lucide-react';
+import { ArrowLeft, BarChart, Users, CalendarDays, DollarSign, FileText, Percent } from 'lucide-react';
 import { showError, showSuccess } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import ContractStatusPieChart from '@/components/analytics/ContractStatusPieChart';
-import BudgetByContractStatusChart from '@/components/analytics/BudgetByContractStatusChart'; // New import
+import BudgetByContractStatusChart from '@/components/analytics/BudgetByContractStatusChart';
 
 interface AnalyticsData {
   totalEvents: number;
@@ -17,9 +17,10 @@ interface AnalyticsData {
   averageBudget: number;
   signedContractsCount: number;
   pendingContractsCount: number;
-  totalSignedBudget: number; // New field
-  totalPendingBudget: number; // New field
+  totalSignedBudget: number;
+  totalPendingBudget: number;
   documentsUploaded: number;
+  closeRate: number; // New field for close rate
 }
 
 const AdminAnalytics = () => {
@@ -34,9 +35,10 @@ const AdminAnalytics = () => {
     averageBudget: 0,
     signedContractsCount: 0,
     pendingContractsCount: 0,
-    totalSignedBudget: 0, // Initialize
-    totalPendingBudget: 0, // Initialize
+    totalSignedBudget: 0,
+    totalPendingBudget: 0,
     documentsUploaded: 0,
+    closeRate: 0, // Initialize
   });
 
   const checkAdminStatus = useCallback(async () => {
@@ -70,17 +72,17 @@ const AdminAnalytics = () => {
       const totalEventsCount = allEvents.length;
       let totalBudget = 0;
       let signedContractsCount = 0;
-      let totalSignedBudget = 0; // New variable
-      let totalPendingBudget = 0; // New variable
+      let totalSignedBudget = 0;
+      let totalPendingBudget = 0;
       let totalDocumentsUploaded = 0;
 
       allEvents.forEach(event => {
         totalBudget += event.budget;
         if (event.signed_contract_url) {
           signedContractsCount++;
-          totalSignedBudget += event.budget; // Add to signed budget
+          totalSignedBudget += event.budget;
         } else {
-          totalPendingBudget += event.budget; // Add to pending budget
+          totalPendingBudget += event.budget;
         }
         // Count uploaded documents for each event
         if (event.renders_url) totalDocumentsUploaded++;
@@ -93,6 +95,7 @@ const AdminAnalytics = () => {
 
       const pendingContractsCount = totalEventsCount - signedContractsCount;
       const averageBudget = totalEventsCount > 0 ? parseFloat((totalBudget / totalEventsCount).toFixed(2)) : 0;
+      const closeRate = totalEventsCount > 0 ? parseFloat(((signedContractsCount / totalEventsCount) * 100).toFixed(2)) : 0; // Calculate close rate
 
       // Fetch total users (excluding admins)
       const { data: profilesData, error: profilesError } = await supabase.functions.invoke('get-all-user-profiles');
@@ -105,9 +108,10 @@ const AdminAnalytics = () => {
         averageBudget: averageBudget,
         signedContractsCount: signedContractsCount,
         pendingContractsCount: pendingContractsCount,
-        totalSignedBudget: totalSignedBudget, // Set new state
-        totalPendingBudget: totalPendingBudget, // Set new state
+        totalSignedBudget: totalSignedBudget,
+        totalPendingBudget: totalPendingBudget,
         documentsUploaded: totalDocumentsUploaded,
+        closeRate: closeRate, // Set new state
       });
 
     } catch (error: any) {
@@ -205,6 +209,17 @@ const AdminAnalytics = () => {
           <CardContent>
             <div className="text-2xl font-bold">{analyticsData.documentsUploaded}</div>
             <p className="text-xs text-muted-foreground">Across all events and document types</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Close Rate</CardTitle>
+            <Percent className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analyticsData.closeRate}%</div>
+            <p className="text-xs text-muted-foreground">Events with signed contracts</p>
           </CardContent>
         </Card>
       </div>

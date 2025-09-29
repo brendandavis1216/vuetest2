@@ -84,11 +84,11 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ event }) => {
       <CardContent>
         <div className="relative pl-6">
           {timelineSteps.map((step, index) => (
-            <div key={index} className="mb-8 flex items-start">
-              <div className="absolute left-0 flex h-full flex-col items-center">
+            <div key={index} className="flex items-start"> {/* Removed mb-8 here */}
+              <div className="absolute left-0 flex flex-col items-center">
                 <div
                   className={cn(
-                    "h-4 w-4 rounded-full",
+                    "h-4 w-4 rounded-full z-10", // Added z-10 to ensure circle is above line
                     step.status === 'completed' ? 'bg-green-500' : 'bg-gray-400'
                   )}
                 >
@@ -100,12 +100,12 @@ const EventTimeline: React.FC<EventTimelineProps> = ({ event }) => {
                 </div>
                 {index < timelineSteps.length - 1 && (
                   <div className={cn(
-                    "h-full w-0.5",
+                    "flex-grow w-0.5 -mt-2", // Use flex-grow to fill remaining space, -mt-2 to overlap with circle
                     timelineSteps[index + 1].status === 'completed' ? 'bg-green-500' : 'bg-gray-300'
                   )}></div>
                 )}
               </div>
-              <div className="ml-6">
+              <div className="ml-6 pb-8"> {/* Added pb-8 here */}
                 <h3 className={cn(
                   "font-semibold text-lg",
                   step.status === 'completed' ? 'text-foreground' : 'text-muted-foreground'

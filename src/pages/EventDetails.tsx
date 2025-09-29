@@ -7,11 +7,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { showError } from '@/utils/toast';
 import { format } from 'date-fns';
-import { ArrowLeft, Image } from 'lucide-react'; // Removed LayoutDashboard icon
+import { ArrowLeft, Image } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import DocumentUploadCard from '@/components/DocumentUploadCard';
 import EventChecklist from '@/components/EventChecklist';
-import EventTimeline from '@/components/EventTimeline'; // New import
+import EventTimeline from '@/components/EventTimeline';
 
 interface Event {
   id: string;
@@ -31,7 +31,7 @@ interface Event {
 }
 
 const EventDetails = () => {
-  const { eventId } = useParams<{ eventId: string }>(); // Changed from 'id' to 'eventId'
+  const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { supabase, session } = useSupabase();
   const [event, setEvent] = useState<Event | null>(null);
@@ -57,7 +57,7 @@ const EventDetails = () => {
   }, [session, supabase]);
 
   const fetchEventDetails = useCallback(async () => {
-    if (!eventId) { // Using eventId
+    if (!eventId) {
       showError('Event ID missing.');
       navigate('/dashboard', { replace: true });
       return;
@@ -67,7 +67,7 @@ const EventDetails = () => {
     const { data, error } = await supabase
       .from('events')
       .select('*, signed_contract_url')
-      .eq('id', eventId) // Using eventId
+      .eq('id', eventId)
       .single();
 
     if (error) {
@@ -78,7 +78,7 @@ const EventDetails = () => {
       setEvent(data as Event);
     }
     setLoading(false);
-  }, [eventId, supabase, navigate, isAdmin]); // Dependency on eventId
+  }, [eventId, supabase, navigate, isAdmin]);
 
   useEffect(() => {
     checkAdminStatus();
@@ -159,18 +159,24 @@ const EventDetails = () => {
         </CardContent>
       </Card>
 
-      <div className="flex justify-between items-center mt-8 mb-4">
-        <h2 className="text-3xl font-bold text-foreground">Event Documents</h2>
-        <div className="flex gap-2">
+      {/* New section for Media Management */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl font-semibold">Media Management</CardTitle>
+          <CardDescription>View and upload photos or videos related to this event.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex justify-center">
           <Link to={`/events/${event.id}/media`}>
-            <Button variant="outline">
+            <Button size="lg">
               <>
-                <Image className="mr-2 h-4 w-4" /> View/Add Media
+                <Image className="mr-2 h-5 w-5" /> View/Add Media
               </>
             </Button>
           </Link>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
+
+      <h2 className="text-3xl font-bold mt-8 mb-4 text-foreground">Event Documents</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Signed Contract: Client uploads, Admin views */}
         <DocumentUploadCard

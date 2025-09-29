@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 interface SidebarNavProps {
   isAdmin: boolean;
   onSignOut: () => void;
-  onLinkClick?: () => void; // Optional prop for closing mobile sidebar
+  onLinkClick?: () => void; // Keep for admin mobile sheet, but not for client primary nav
 }
 
 const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick }) => {
@@ -62,7 +62,12 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
           isActive = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
         }
         
-        if ((isAdmin && item.roles.includes('admin')) || (!isAdmin && item.roles.includes('client') && !item.to.startsWith('/admin'))) {
+        // Only render items relevant to the current user's role and if it's not a client mobile view
+        // Client mobile view will use BottomNavBar for primary navigation
+        const shouldRenderForClient = item.roles.includes('client') && !isAdmin;
+        const shouldRenderForAdmin = item.roles.includes('admin') && isAdmin;
+
+        if (shouldRenderForAdmin || (shouldRenderForClient && !onLinkClick)) { // onLinkClick implies mobile sheet context
           return (
             <Link key={item.to} to={item.to} onClick={onLinkClick}>
               <Button
@@ -87,7 +92,7 @@ const SidebarNav: React.FC<SidebarNavProps> = ({ isAdmin, onSignOut, onLinkClick
       <Button
         onClick={() => {
           onSignOut();
-          onLinkClick?.(); // Close sidebar on sign out for mobile
+          onLinkClick?.(); // Close sidebar on sign out for mobile admin sheet
         }}
         variant="ghost"
         className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mt-4"

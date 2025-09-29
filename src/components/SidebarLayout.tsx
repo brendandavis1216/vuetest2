@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -27,11 +27,10 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, isAdmin, onSign
   if (isMobile) {
     return (
       <div className="flex flex-col min-h-screen">
-        <header className="bg-primary text-primary-foreground p-4 shadow-md flex items-center justify-between">
+        <header className="bg-sidebar text-sidebar-foreground p-4 shadow-md flex items-center justify-between"> {/* Changed bg and text colors */}
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-primary-foreground">
-                {/* Changed fragment to a span to ensure a single child element */}
+              <Button variant="ghost" size="icon" className="text-sidebar-foreground"> {/* Changed text color */}
                 <span>
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Toggle navigation</span>
@@ -45,7 +44,7 @@ const SidebarLayout: React.FC<SidebarLayoutProps> = ({ children, isAdmin, onSign
               <SidebarNav isAdmin={isAdmin} onSignOut={onSignOut} onLinkClick={handleLinkClick} />
             </SheetContent>
           </Sheet>
-          <h1 className="text-xl font-bold text-primary-foreground">VUE</h1>
+          <h1 className="text-xl font-bold text-sidebar-foreground">VUE</h1> {/* Changed text color */}
           <div className="w-10"></div> {/* Placeholder for alignment */}
         </header>
         <main className="flex-grow p-4">

@@ -6,8 +6,21 @@ import { useSupabase } from '@/integrations/supabase/SessionContextProvider';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, BarChart, Users, CalendarDays, DollarSign, FileText } from 'lucide-react';
-import { showError } from '@/utils/toast';
+import { showError, showSuccess } from '@/utils/toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import EventsByArtistStatusChart from '@/components/analytics/EventsByArtistStatusChart';
+import ContractStatusPieChart from '@/components/analytics/ContractStatusPieChart';
+
+interface AnalyticsData {
+  totalEvents: number;
+  totalUsers: number;
+  averageBudget: number;
+  eventsWithArtist: number;
+  eventsWithoutArtist: number; // New field for chart
+  signedContractsCount: number; // New field for chart
+  pendingContractsCount: number; // New field for chart
+  documentsUploaded: number;
+}
 
 const AdminAnalytics = () => {
   const { supabase, session } = useSupabase();
@@ -15,11 +28,14 @@ const AdminAnalytics = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loadingAdminStatus, setLoadingAdminStatus] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
-  const [analyticsData, setAnalyticsData] = useState({
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>({
     totalEvents: 0,
     totalUsers: 0,
     averageBudget: 0,
     eventsWithArtist: 0,
+    eventsWithoutArtist: 0,
+    signedContractsCount: 0,
+    pendingContractsCount: 0,
     documentsUploaded: 0,
   });
 
@@ -44,33 +60,26 @@ const AdminAnalytics = () => {
   const fetchAnalyticsData = useCallback(async () => {
     setLoadingData(true);
     try {
-      // Fetch total events
-      const { count: totalEventsCount, error: eventsError } = await supabase
-        .from('events')
-        .select('*', { count: 'exact', head: true });
-
-      if (eventsError) throw eventsError;
-
-      // Fetch total users (excluding admins)
-      const { data: profilesData, error: profilesError } = await supabase.functions.invoke('get-all-user-profiles');
-      if (profilesError) throw profilesError;
-      const totalUsersCount = (profilesData as any[]).filter(p => p.role !== 'admin').length;
-
-      // Fetch events for average budget and events with artist
+      // Fetch total events and related counts
       const { data: allEvents, error: allEventsError } = await supabase
         .from('events')
         .select('budget, artist_name, renders_url, contract_url, invoice_url, equipment_list_url, other_documents_url, signed_contract_url');
 
       if (allEventsError) throw allEventsError;
 
+      const totalEventsCount = allEvents.length;
       let totalBudget = 0;
       let eventsWithArtistCount = 0;
+      let signedContractsCount = 0;
       let totalDocumentsUploaded = 0;
 
       allEvents.forEach(event => {
         totalBudget += event.budget;
         if (event.artist_name) {
           eventsWithArtistCount++;
+        }
+        if (event.signed_contract_url) {
+          signedContractsCount++;
         }
         // Count uploaded documents for each event
         if (event.renders_url) totalDocumentsUploaded++;
@@ -81,13 +90,23 @@ const AdminAnalytics = () => {
         if (event.signed_contract_url) totalDocumentsUploaded++;
       });
 
-      const averageBudget = totalEventsCount && totalEventsCount > 0 ? totalBudget / totalEventsCount : 0;
+      const eventsWithoutArtist = totalEventsCount - eventsWithArtistCount;
+      const pendingContractsCount = totalEventsCount - signedContractsCount;
+      const averageBudget = totalEventsCount > 0 ? parseFloat((totalBudget / totalEventsCount).toFixed(2)) : 0;
+
+      // Fetch total users (excluding admins)
+      const { data: profilesData, error: profilesError } = await supabase.functions.invoke('get-all-user-profiles');
+      if (profilesError) throw profilesError;
+      const totalUsersCount = (profilesData as any[]).filter(p => p.role !== 'admin').length;
 
       setAnalyticsData({
-        totalEvents: totalEventsCount || 0,
-        totalUsers: totalUsersCount || 0,
-        averageBudget: parseFloat(averageBudget.toFixed(2)),
+        totalEvents: totalEventsCount,
+        totalUsers: totalUsersCount,
+        averageBudget: averageBudget,
         eventsWithArtist: eventsWithArtistCount,
+        eventsWithoutArtist: eventsWithoutArtist,
+        signedContractsCount: signedContractsCount,
+        pendingContractsCount: pendingContractsCount,
         documentsUploaded: totalDocumentsUploaded,
       });
 
@@ -190,16 +209,33 @@ const AdminAnalytics = () => {
         </Card>
       </div>
 
-      {/* Future sections for charts or more detailed reports can go here */}
-      <Card className="mt-8">
-        <CardHeader>
-          <CardTitle>Detailed Reports (Coming Soon)</CardTitle>
-          <CardDescription>Placeholder for charts, graphs, and more in-depth analysis.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">This section will feature interactive charts and detailed breakdowns of event data, user activity, and document management.</p>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Events by Artist Engagement</CardTitle>
+            <CardDescription>Breakdown of events based on artist hiring status.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <EventsByArtistStatusChart
+              eventsWithArtist={analyticsData.eventsWithArtist}
+              eventsWithoutArtist={analyticsData.eventsWithoutArtist}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Contract Status Overview</CardTitle>
+            <CardDescription>Proportion of events with signed vs. pending contracts.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ContractStatusPieChart
+              signedContractsCount={analyticsData.signedContractsCount}
+              pendingContractsCount={analyticsData.pendingContractsCount}
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

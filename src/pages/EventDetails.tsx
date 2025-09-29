@@ -11,6 +11,7 @@ import { ArrowLeft, Image } from 'lucide-react'; // Removed LayoutDashboard icon
 import { Skeleton } from '@/components/ui/skeleton';
 import DocumentUploadCard from '@/components/DocumentUploadCard';
 import EventChecklist from '@/components/EventChecklist';
+import EventTimeline from '@/components/EventTimeline'; // New import
 
 interface Event {
   id: string;
@@ -122,8 +123,12 @@ const EventDetails = () => {
         <h1 className="text-4xl font-bold text-foreground text-center sm:text-left">Event: {event.event_name || 'Untitled Event'}</h1>
       </div>
 
-      {/* Event Checklist at the top */}
-      <EventChecklist event={event} />
+      {/* Conditional rendering for Checklist vs. Timeline */}
+      {isAdmin ? (
+        <EventChecklist event={event} />
+      ) : (
+        <EventTimeline event={event} />
+      )}
 
       <Card className="shadow-lg">
         <CardHeader>

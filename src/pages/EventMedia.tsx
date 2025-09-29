@@ -141,7 +141,7 @@ const EventMedia = () => {
   const canDelete = isEventOwner || isAdmin; // Both owner and admin can delete
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="p-4 pb-20 space-y-8"> {/* Adjusted padding for mobile and bottom nav */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
         <Button variant="outline" onClick={() => navigate(`/events/${eventId}`)}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back to Event Details
@@ -163,7 +163,7 @@ const EventMedia = () => {
       {media.length === 0 ? (
         <p className="text-muted-foreground text-center py-8">No media uploaded for this event yet.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"> {/* Ensure 1 column on mobile */}
           {media.map((item) => (
             <MediaUploadCard
               key={item.id}

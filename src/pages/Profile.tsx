@@ -153,8 +153,8 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex flex-col items-center justify-start bg-gray-100 p-4 pb-20"> {/* Adjusted for mobile stacking and bottom nav */}
+      <Card className="w-full max-w-md"> {/* Card takes full width on small screens */}
         <CardHeader>
           <CardTitle>User Profile</CardTitle>
           <CardDescription>Manage your profile information and avatar.</CardDescription>

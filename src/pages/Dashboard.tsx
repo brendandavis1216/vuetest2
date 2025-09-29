@@ -70,7 +70,7 @@ const Dashboard = () => {
   }, [fetchEvents]);
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="p-4 pb-20"> {/* Adjusted padding for mobile and bottom nav */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4"> {/* Adjusted for mobile stacking */}
         <h1 className="text-4xl font-bold text-foreground text-center sm:text-left">Dashboard</h1>
         <CreateEventDialog onEventCreated={fetchEvents} />
@@ -95,13 +95,13 @@ const Dashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="min-w-[150px]">Event Name/Theme</TableHead>
-                      <TableHead className="min-w-[120px]">Event Date</TableHead>
-                      <TableHead className="min-w-[120px]">Artist Name</TableHead>
-                      <TableHead className="min-w-[100px]">Budget</TableHead>
-                      <TableHead className="min-w-[150px]">Contact Phone</TableHead>
-                      <TableHead className="text-center min-w-[120px]">View Documents</TableHead>
-                      <TableHead className="text-center min-w-[80px]">Edit</TableHead>
+                      <TableHead>Event Name/Theme</TableHead>
+                      <TableHead>Event Date</TableHead>
+                      <TableHead>Artist Name</TableHead>
+                      <TableHead>Budget</TableHead>
+                      <TableHead>Contact Phone</TableHead>
+                      <TableHead className="text-center">View Documents</TableHead>
+                      <TableHead className="text-center">Edit</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -151,13 +151,13 @@ const Dashboard = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="min-w-[150px]">Event Name/Theme</TableHead>
-                      <TableHead className="min-w-[120px]">Event Date</TableHead>
-                      <TableHead className="min-w-[120px]">Artist Name</TableHead>
-                      <TableHead className="min-w-[100px]">Budget</TableHead>
-                      <TableHead className="min-w-[150px]">Contact Phone</TableHead>
-                      <TableHead className="text-center min-w-[120px]">View Documents</TableHead>
-                      <TableHead className="text-center min-w-[80px]">Edit</TableHead>
+                      <TableHead>Event Name/Theme</TableHead>
+                      <TableHead>Event Date</TableHead>
+                      <TableHead>Artist Name</TableHead>
+                      <TableHead>Budget</TableHead>
+                      <TableHead>Contact Phone</TableHead>
+                      <TableHead className="text-center">View Documents</TableHead>
+                      <TableHead className="text-center">Edit</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

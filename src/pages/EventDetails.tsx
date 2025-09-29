@@ -113,7 +113,7 @@ const EventDetails = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8">
+    <div className="p-4 pb-20 space-y-8"> {/* Adjusted padding for mobile and bottom nav */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-4">
         <Button variant="outline" onClick={() => navigate(isAdmin ? '/admin' : '/dashboard')}>
           <>
@@ -135,7 +135,7 @@ const EventDetails = () => {
           <CardTitle className="text-2xl font-semibold">Event Overview</CardTitle>
           <CardDescription>Key details about your event.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Ensure 1 column on mobile */}
           <div>
             <p className="text-sm font-medium text-muted-foreground">Event Name/Theme</p>
             <p className="text-lg font-semibold">{event.event_name || 'N/A'}</p>
@@ -177,7 +177,7 @@ const EventDetails = () => {
       </Card>
 
       <h2 className="text-3xl font-bold mt-8 mb-4 text-foreground">Event Documents</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"> {/* Ensure 1 column on mobile */}
         {/* Signed Contract: Client uploads, Admin views */}
         <DocumentUploadCard
           eventId={event.id}
